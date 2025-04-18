@@ -14,15 +14,12 @@ const compat = new FlatCompat({
 const commonRules = {
   'no-var': 'error',
   'prefer-const': 'error',
-  // 'no-unused-vars': ['error', { argsIgnorePattern: '^_' }],
   'no-console': 'off',
   semi: ['error', 'never'],
   quotes: ['error', 'single', { avoidEscape: true }],
-  // 'comma-dangle': ['error', 'never'],
   'arrow-parens': 'off',
   'brace-style': ['error', '1tbs'],
   indent: 'off',
-  'max-len': ['warn', { code: 100, ignoreUrls: true }],
 }
 
 const baseConfig = {
