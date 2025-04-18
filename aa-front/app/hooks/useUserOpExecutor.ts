@@ -25,7 +25,6 @@ interface ExecuteResult {
   success: boolean
   userOpHash?: Hex
   txHash?: string
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   receipt?: any
   error?: string
 }

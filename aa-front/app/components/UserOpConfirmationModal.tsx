@@ -29,7 +29,6 @@ interface UserOpConfirmationModalProps {
 
 interface DecodedSingleCallData {
   functionName: string
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   args: any[]
   callData?: Hex
 }
@@ -38,7 +37,6 @@ interface DecodedOperation {
   functionName: string
   contractAddress?: string
   value?: bigint
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   args: any[]
 }
 
@@ -46,7 +44,6 @@ interface DecodedCallData {
   functionName: string
   contractAddress?: string
   value?: bigint
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   args: any[]
   callData?: Hex
   operations: DecodedOperation[]
@@ -222,7 +219,6 @@ export const UserOpConfirmationModal: React.FC<UserOpConfirmationModalProps> = (
 
   if (!callData || !decodedData) return null
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const formatArgsForDisplay = (args: any[]): string => {
     try {
       return JSON.stringify(
