@@ -1,0 +1,60 @@
+name: Lint
+
+on:
+  push:
+    branches: [ main, master, develop ]
+  pull_request:
+    branches: [ main, master, develop ]
+
+jobs:
+  lint-frontend:
+    name: Lint Frontend
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: 'aa-front/package-lock.json'
+
+      - name: Install dependencies
+        working-directory: ./aa-front
+        run: npm ci
+
+      - name: Run ESLint
+        working-directory: ./aa-front
+        run: npm run lint
+
+      - name: Check formatting with Prettier
+        working-directory: ./aa-front
+        run: npx prettier --check "**/*.{js,jsx,ts,tsx,json,css,md}"
+
+  lint-backend:
+    name: Lint Backend
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: 'api/package-lock.json'
+
+      - name: Install dependencies
+        working-directory: ./api
+        run: npm ci
+
+      - name: Run ESLint
+        working-directory: ./api
+        run: npm run lint
+
+      - name: Check formatting with Prettier
+        working-directory: ./api
+        run: npx prettier --check "**/*.{js,jsx,ts,tsx,json,css,md}"
