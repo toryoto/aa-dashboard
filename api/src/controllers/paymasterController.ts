@@ -2,8 +2,11 @@ import { NextRequest, NextResponse } from 'next/server'
 import { privateKeyToAccount } from 'viem/accounts'
 import { getContract, Hex } from 'viem'
 import { verifyingPaymasterAbi } from '../abi/verifyingPaymaster'
-import { publicClient } from '../utils/viem'
+import { publicClient } from '../utils/client'
 import type { UserOperation } from '../types/userOperationType'
+import dotenv from 'dotenv'
+
+dotenv.config()
 
 const PAYMASTER_PRIVATE_KEY = process.env.PAYMASTER_PRIVATE_KEY
 const PAYMASTER_ADDRESS = process.env.PAYMASTER_ADDRESS
