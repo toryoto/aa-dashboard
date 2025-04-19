@@ -1,4 +1,3 @@
-
 ## Running the Application
 
 ### Development Mode
