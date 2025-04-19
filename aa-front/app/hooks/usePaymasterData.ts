@@ -10,7 +10,7 @@ export const usePaymasterData = () => {
   const getPaymasterAndData = async (userOp: UserOperation): Promise<Hex> => {
     setLoading(true)
     try {
-      const response = await fetch('/api/generatePaymasterData', {
+      const response = await fetch('http://localhost:4000/api/generatePaymasterData', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
