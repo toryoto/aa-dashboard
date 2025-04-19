@@ -11,6 +11,7 @@ const nextConfig: NextConfig = {
       'jpyc.jp',
     ],
   },
+  output: 'standalone',
 }
 
 export default nextConfig
