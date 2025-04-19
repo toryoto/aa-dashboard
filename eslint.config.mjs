@@ -44,6 +44,8 @@ const backendConfig = {
       process: 'readonly',
     },
   },
+  parser: '@typescript-eslint/parser',
+  rules: commonRules,
 }
 
 const frontendConfigs = [
