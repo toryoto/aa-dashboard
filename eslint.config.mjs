@@ -2,6 +2,7 @@
 import { dirname } from 'path'
 import { fileURLToPath } from 'url'
 import { FlatCompat } from '@eslint/eslintrc'
+import parser from '@typescript-eslint/parser'
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = dirname(__filename)
@@ -40,11 +41,11 @@ const backendConfig = {
   files: ['api/**/*.{js,ts}'],
   languageOptions: {
     ...baseConfig.languageOptions,
+    parser: parser,
     globals: {
       process: 'readonly',
     },
   },
-  parser: '@typescript-eslint/parser',
   rules: commonRules,
 }
 
