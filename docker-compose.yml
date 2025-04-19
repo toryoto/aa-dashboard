@@ -1,4 +1,4 @@
-# docker-compose.yml
+# docker-compose.yml (開発用 - シンプル版)
 services:
   frontend:
     build:
@@ -12,10 +12,13 @@ services:
     ports:
       - '3000:3000'
     environment:
-      - NODE_ENV=production
-    depends_on:
-      - backend
-    restart: unless-stopped
+      - NODE_ENV=development
+    volumes:
+      - ./aa-front:/app
+      # node_modules と .next はイメージ内のものを使う
+      - /app/node_modules
+      - /app/.next
+    command: npm run dev
 
   backend:
     build:
@@ -24,9 +27,12 @@ services:
     ports:
       - '4000:4000'
     environment:
-      - NODE_ENV=production
-      - FRONTEND_URL=http://frontend:3000
+      - NODE_ENV=development
       - ALCHEMY_API_KEY=${ALCHEMY_API_KEY}
       - PAYMASTER_PRIVATE_KEY=${PAYMASTER_PRIVATE_KEY}
       - PAYMASTER_ADDRESS=${PAYMASTER_ADDRESS}
-    restart: unless-stopped
+    volumes:
+      - ./api:/app
+      - /app/node_modules
+      # - /app/dist # ビルド出力がある場合はコメント解除
+    command: npm run dev
