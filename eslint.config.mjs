@@ -44,6 +44,10 @@ const backendConfig = {
       process: 'readonly',
     },
   },
+  parser: '@typescript-eslint/parser',
+  parserOptions: {
+    project: './tsconfig.json',
+  },
 }
 
 const frontendConfigs = [
