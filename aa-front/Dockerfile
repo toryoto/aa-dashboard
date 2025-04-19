@@ -4,7 +4,7 @@ WORKDIR /app
 
 RUN apk add --no-cache python3 make g++ gcc
 
-COPY aa-front/package.json aa-front/package-lock.json* ./
+COPY package.json package-lock.json* ./
 
 RUN npm config set engine-strict false
 RUN npm config set legacy-peer-deps true
@@ -29,7 +29,7 @@ FROM dev AS builder
 WORKDIR /app
 
 # ソースコードをコピー
-COPY aa-front .
+COPY . .
 
 # ビルド実行
 RUN npm run build

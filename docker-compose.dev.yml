@@ -17,11 +17,13 @@ services:
 
   backend:
     build:
+      context: ./api
       target: dev
     ports:
       - '4000:4000'
     environment:
       - NODE_ENV=development
+      - PORT=4000
       - NEXT_PUBLIC_NODE_ENV=development
       - FRONTEND_URL=http://frontend:3000
       - ALCHEMY_API_KEY=${ALCHEMY_API_KEY}
