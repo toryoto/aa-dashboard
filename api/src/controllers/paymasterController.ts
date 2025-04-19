@@ -1,4 +1,3 @@
-import { NextRequest, NextResponse } from 'next/server'
 import { privateKeyToAccount } from 'viem/accounts'
 import { getContract, Hex } from 'viem'
 import { verifyingPaymasterAbi } from '../abi/verifyingPaymaster'

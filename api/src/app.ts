@@ -1,30 +1,37 @@
-import express, { Request, Response, NextFunction } from 'express'
+import express from 'express'
 import paymasterRoutes from './routes/paymaster'
+import cors from 'cors'
 
 const app = express()
 
-// ミドルウェア
+const allowedOrigins = ['http://localhost:3000', process.env.FRONTEND_URL]
+
+const corsOptions: cors.CorsOptions = {
+  origin: function (origin, callback) {
+    if (!origin || allowedOrigins.indexOf(origin) !== -1) {
+      callback(null, true)
+    } else {
+      callback(new Error('Not allowed by CORS'))
+    }
+  },
+  methods: 'GET, POST, PUT, DELETE, OPTIONS',
+  allowedHeaders: 'Origin, X-Requested-With, Content-Type, Accept',
+  credentials: true,
+}
+
+app.use(cors(corsOptions))
+
 app.use(express.json())
 
-// CORS設定
-app.use((req: Request, res: Response, next: NextFunction) => {
-  res.header('Access-Control-Allow-Origin', process.env.FRONTEND_URL || 'http://localhost:3000')
-  res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept')
-  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS')
-  if (req.method === 'OPTIONS') {
-    res.sendStatus(200)
-  } else {
-    next()
-  }
-})
-
-// ルート
 app.use('/api', paymasterRoutes)
 
-// エラーハンドリング
-app.use((err: any, req: any, res: any, next: any) => {
+app.use((err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {
   console.error(err.stack)
-  res.status(500).json({ error: 'Something went wrong!' })
+  if (err.message === 'Not allowed by CORS') {
+    res.status(403).json({ error: 'Not allowed by CORS' })
+  } else {
+    res.status(500).json({ error: 'Something went wrong!' })
+  }
 })
 
 export default app

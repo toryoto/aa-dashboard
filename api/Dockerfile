@@ -1,0 +1,37 @@
+# ---- Developer Stage ----
+FROM node:20-alpine AS dev
+WORKDIR /app
+
+COPY api/package.json api/package-lock.json* ./
+
+RUN npm ci
+
+# 開発環境の場合はここでnpm run devを実行
+CMD ["npm", "run", "dev"]
+
+# 本番環境はコードをコンテナ内にコピーしてからビルド
+# ---- Builder Stage ----
+FROM dev AS builder
+WORKDIR /app
+
+# ソースコードをコピー
+COPY api .
+
+# ビルド実行
+RUN npm run build
+
+# ---- Runner Stage ----
+FROM node:20-alpine AS runner
+WORKDIR /app
+
+ENV NODE_ENV=production
+ENV PORT=4000
+
+COPY --from=builder /app/package*.json ./
+COPY --from=builder /app/dist ./dist
+
+RUN npm ci --only=production
+
+# ポート設定と起動コマンド
+EXPOSE 4000
+CMD ["npm", "start"]
