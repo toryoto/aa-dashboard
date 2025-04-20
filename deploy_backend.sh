@@ -1,25 +1,19 @@
 #!/bin/bash
 YOUR_GCP_PROJECT_ID="aa-dashboard-457316"
 
-# Cloud Run をデプロイするリージョン (例: asia-northeast1)
 REGION="asia-northeast1"
 
-# Cloud Run サービスの名前 (任意、分かりやすい名前をつける)
 BACKEND_SERVICE_NAME="backend-api"
 
-# Dockerfile と Express.js コードがあるディレクトリ (モノレポのルートからの相対パス)
 EXPRESS_SOURCE_DIR="./api"
 
 # --- Secret Manager のシークレット名の定義 ---
-# ここには Secret Manager 上の「名前」を指定します。値ではありません。
 SECRET_NAME_ALCHEMY_API_KEY="ALCHEMY_API_KEY"
 SECRET_NAME_PAYMASTER_PRIVATE_KEY="PAYMASTER_PRIVATE_KEY"
-# 他に必要なシークレット名があればここに追加...
 
 # --- 非秘密の環境変数の定義 ---
 PAYMASTER_ADDRESS="0x415b4ceC5cf512CeDBE09C12081A0b75E13854Ff" # これは非秘密情報として扱う
 NON_SECRET_ENV_VARS="NODE_ENV=production"
-# 必要に応じて他の非秘密環境変数を追加
 NON_SECRET_ENV_VARS="${NON_SECRET_ENV_VARS},PAYMASTER_ADDRESS=${PAYMASTER_ADDRESS}"
 
 
