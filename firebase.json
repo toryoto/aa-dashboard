@@ -13,14 +13,7 @@
         }
       },
       {
-        "source": "/",
-        "run": {
-          "serviceId": "nextjs-frontend-service",
-          "region": "asia-northeast1"
-        }
-      },
-      {
-        "source": "/**",
+        "source": "**",
         "run": {
           "serviceId": "nextjs-frontend-service",
           "region": "asia-northeast1"
