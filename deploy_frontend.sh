@@ -21,10 +21,6 @@ NEXT_PUBLIC_BACKEND_API_BASE_URL="https://backend-api-429781279541.asia-northeas
 
 # --- 本番環境で Cloud Run (サーバーサイド) で必要な環境変数 ---
 CLOUD_RUN_ENV_VARS="NODE_ENV=production"
-# CLOUD_RUN_ENV_VARS="${CLOUD_RUN_ENV_VARS},ANOTHER_VAR=value"
-
-# --- 本番環境で Cloud Run (サーバーサイド) で必要なシークレット ---
-CLOUD_RUN_SECRETS=""
 
 # --- Firebase Hosting デプロイ用ディレクトリ ---
 # FIREBASE_PUBLIC_DIR="public_deploy" # 一時的にコメントアウト
