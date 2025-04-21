@@ -17,37 +17,33 @@ jobs:
     permissions:
       contents: 'read'
       id-token: 'write'
+      secrets: 'read'
 
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GCP_SA_KEY }}
+          project_id: aa-dashboard-457316
+
       - name: Setup Google Cloud SDK
         uses: google-github-actions/setup-gcloud@v2
-        with:
-          project_id: aa-dashboard-457316
-          service_account_key: ${{ secrets.GCP_SA_KEY }}
-          export_default_credentials: true
 
-
-      - name: Check GCloud Auth Status AFTER setup
+      - name: Check GCloud Auth Status
         shell: bash
         run: |
-          echo "--- 1. Check Active Account (gcloud auth list) ---"
+          echo "--- 1. Check Active Account ---"
           gcloud auth list
-
-          echo "--- 2. Check Configured Account & Project (gcloud config list) ---"
+          
+          echo "--- 2. Check Project ---"
           gcloud config list
-
-          echo "--- 3. Check Direct Account Access (gcloud config get-value account) ---"
-          gcloud config get-value account
-
-          echo "--- 4. Check Project Access Ability ---"
-          gcloud projects describe aa-dashboard-457316 --format='value(projectNumber)' || \
-            echo "!!! Failed to describe project. Check authentication and basic permissions (e.g., roles/viewer) for the service account. !!!"
-
-          echo "--- Done checking auth status ---"
+          
+          echo "--- 3. Confirm Secret Access ---"
+          gcloud secrets versions access latest --secret=ALCHEMY_API_KEY --project=aa-dashboard-457316 > /dev/null && echo "Secret access successful" || echo "Secret access failed"
 
       - name: Deploy to Cloud Run
         env:
@@ -56,8 +52,6 @@ jobs:
           PAYMASTER_ADDRESS: '0x415b4ceC5cf512CeDBE09C12081A0b75E13854Ff'
         run: |
           NON_SECRET_ENV_VARS="NODE_ENV=production,PAYMASTER_ADDRESS=${PAYMASTER_ADDRESS}"
-
-          # GCP Secret Manager に ALCHEMY_API_KEY と PAYMASTER_PRIVATE_KEY という名前のシークレットが存在し、
           SECRET_VARS="ALCHEMY_API_KEY=ALCHEMY_API_KEY:latest,PAYMASTER_PRIVATE_KEY=PAYMASTER_PRIVATE_KEY:latest"
 
           echo "Deploying to Cloud Run: ${BACKEND_SERVICE_NAME}"
@@ -70,4 +64,3 @@ jobs:
             --port 4000 \
             --update-env-vars "${NON_SECRET_ENV_VARS}" \
             --update-secrets="${SECRET_VARS}"
-            --dry-run
