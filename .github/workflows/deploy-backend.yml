@@ -33,9 +33,6 @@ jobs:
           PAYMASTER_ADDRESS: "0x415b4ceC5cf512CeDBE09C12081A0b75E13854Ff"
         run: |
           gcloud config set account $(gcloud auth list --filter=status:ACTIVE --format="value(account)")
-          NON_SECRET_ENV_VARS="NODE_ENV=production,PAYMASTER_ADDRESS=${PAYMASTER_ADDRESS}"
-          
-          # Cloud Runへのデプロイ
           echo "Deploying to Cloud Run: ${BACKEND_SERVICE_NAME}"
           gcloud run deploy ${BACKEND_SERVICE_NAME} \
             --project=aa-dashboard-457316 \
