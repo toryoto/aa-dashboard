@@ -4,7 +4,7 @@ import cors from 'cors'
 
 const app = express()
 
-const allowedOrigins = ['http://localhost:3000']
+const allowedOrigins = ['http://localhost:3000', 'https://aa-dashboard-457316.web.app']
 
 const corsOptions: cors.CorsOptions = {
   origin: function (origin, callback) {
