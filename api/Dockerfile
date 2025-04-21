@@ -2,7 +2,7 @@
 FROM node:20-alpine AS dev
 WORKDIR /app
 
-COPY api/package.json api/package-lock.json* ./
+COPY package.json package-lock.json* ./
 
 RUN npm ci
 
@@ -15,7 +15,7 @@ FROM dev AS builder
 WORKDIR /app
 
 # ソースコードをコピー
-COPY api .
+COPY . .
 
 # ビルド実行
 RUN npm run build
@@ -34,4 +34,4 @@ RUN npm ci --only=production
 
 # ポート設定と起動コマンド
 EXPOSE 4000
-CMD ["npm", "start"]
+CMD ["npm", "start"] 

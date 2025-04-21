@@ -7,10 +7,12 @@ export const usePaymasterData = () => {
   const [loading, setLoading] = useState<boolean>(false)
   const [error, setError] = useState<Error | null>(null)
 
+  const backendApiBaseUrl = process.env.NEXT_PUBLIC_BACKEND_API_BASE_URL
+
   const getPaymasterAndData = async (userOp: UserOperation): Promise<Hex> => {
     setLoading(true)
     try {
-      const response = await fetch('http://localhost:4000/api/generatePaymasterData', {
+      const response = await fetch(`${backendApiBaseUrl}/api/generatePaymasterData`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

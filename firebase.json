@@ -1,0 +1,24 @@
+{
+  "hosting": {
+    "public": "public_deploy",
+    "ignore": ["firebase.json", "**/.*", "**/node_modules/**"],
+    "cleanUrls": true,
+    "trailingSlash": false,
+    "rewrites": [
+      {
+        "source": "/_next/data/**",
+        "run": {
+          "serviceId": "nextjs-frontend-service",
+          "region": "asia-northeast1"
+        }
+      },
+      {
+        "source": "**",
+        "run": {
+          "serviceId": "nextjs-frontend-service",
+          "region": "asia-northeast1"
+        }
+      }
+    ]
+  }
+}
