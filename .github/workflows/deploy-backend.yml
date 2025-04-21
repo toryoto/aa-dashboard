@@ -14,6 +14,10 @@ on:
 
 jobs:
   deploy:
+    permissions:
+      contents: 'read'
+      id-token: 'write'
+
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -26,6 +30,25 @@ jobs:
           service_account_key: ${{ secrets.GCP_SA_KEY }}
           export_default_credentials: true
 
+
+      - name: Check GCloud Auth Status AFTER setup
+        shell: bash
+        run: |
+          echo "--- 1. Check Active Account (gcloud auth list) ---"
+          gcloud auth list
+
+          echo "--- 2. Check Configured Account & Project (gcloud config list) ---"
+          gcloud config list
+
+          echo "--- 3. Check Direct Account Access (gcloud config get-value account) ---"
+          gcloud config get-value account
+
+          echo "--- 4. Check Project Access Ability ---"
+          gcloud projects describe aa-dashboard-457316 --format='value(projectNumber)' || \
+            echo "!!! Failed to describe project. Check authentication and basic permissions (e.g., roles/viewer) for the service account. !!!"
+
+          echo "--- Done checking auth status ---"
+
       - name: Deploy to Cloud Run
         env:
           REGION: 'asia-northeast1'
@@ -34,7 +57,9 @@ jobs:
         run: |
           NON_SECRET_ENV_VARS="NODE_ENV=production,PAYMASTER_ADDRESS=${PAYMASTER_ADDRESS}"
 
-          # Cloud Runへのデプロイ
+          # GCP Secret Manager に ALCHEMY_API_KEY と PAYMASTER_PRIVATE_KEY という名前のシークレットが存在し、
+          SECRET_VARS="ALCHEMY_API_KEY=ALCHEMY_API_KEY:latest,PAYMASTER_PRIVATE_KEY=PAYMASTER_PRIVATE_KEY:latest"
+
           echo "Deploying to Cloud Run: ${BACKEND_SERVICE_NAME}"
           gcloud run deploy ${BACKEND_SERVICE_NAME} \
             --project=aa-dashboard-457316 \
@@ -44,5 +69,5 @@ jobs:
             --allow-unauthenticated \
             --port 4000 \
             --update-env-vars "${NON_SECRET_ENV_VARS}" \
-            --update-secrets="ALCHEMY_API_KEY=ALCHEMY_API_KEY:latest,PAYMASTER_PRIVATE_KEY=PAYMASTER_PRIVATE_KEY:latest"
+            --update-secrets="${SECRET_VARS}"
             --dry-run
