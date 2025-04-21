@@ -13,6 +13,13 @@
         }
       },
       {
+        "source": "/api/**",
+        "run": {
+          "serviceId": "backend-api",
+          "region": "asia-northeast1"
+        }
+      },
+      {
         "source": "**",
         "run": {
           "serviceId": "nextjs-frontend-service",
