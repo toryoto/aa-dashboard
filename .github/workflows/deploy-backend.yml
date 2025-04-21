@@ -1,0 +1,49 @@
+name: Deploy Backend
+
+on:
+  push:
+    branches: [main, master]
+    paths:
+      - 'api/**'
+      - '.github/workflows/deploy-backend.yml'
+  pull_request:
+    branches: [main, master, develop]
+    paths:
+      - 'api/**'
+      - '.github/workflows/deploy-backend.yml'
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Google Cloud SDK
+        uses: google-github-actions/setup-gcloud@v2
+        with:
+          project_id: aa-dashboard-457316
+          service_account_key: ${{ secrets.GCP_SA_KEY }}
+          export_default_credentials: true
+
+      - name: Deploy to Cloud Run
+        env:
+          REGION: "asia-northeast1"
+          BACKEND_SERVICE_NAME: "backend-api"
+          PAYMASTER_ADDRESS: "0x415b4ceC5cf512CeDBE09C12081A0b75E13854Ff"
+        run: |
+          gcloud config set account $(gcloud auth list --filter=status:ACTIVE --format="value(account)")
+          NON_SECRET_ENV_VARS="NODE_ENV=production,PAYMASTER_ADDRESS=${PAYMASTER_ADDRESS}"
+          
+          # Cloud Runへのデプロイ
+          echo "Deploying to Cloud Run: ${BACKEND_SERVICE_NAME}"
+          gcloud run deploy ${BACKEND_SERVICE_NAME} \
+            --project=aa-dashboard-457316 \
+            --source ./api \
+            --region ${REGION} \
+            --platform managed \
+            --allow-unauthenticated \
+            --port 4000 \
+            --update-env-vars "${NON_SECRET_ENV_VARS}" \
+            --update-secrets="ALCHEMY_API_KEY=ALCHEMY_API_KEY:latest,PAYMASTER_PRIVATE_KEY=PAYMASTER_PRIVATE_KEY:latest"
+            --dry-run
