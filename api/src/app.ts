@@ -4,11 +4,7 @@ import cors from 'cors'
 
 const app = express()
 
-const allowedOrigins = [
-  'http://localhost:3000',
-  'https://nextjs-frontend-service-429781279541.asia-northeast1.run.app',
-  'https://aa-dashboard-457316.web.app',
-]
+const allowedOrigins = ['http://localhost:3000']
 
 const corsOptions: cors.CorsOptions = {
   origin: function (origin, callback) {
