@@ -1,0 +1,117 @@
+name: Deploy Next.js Frontend to Cloud Run
+
+on:
+  push:
+    branches:
+      - main
+      - develop
+      - feature/*
+    pull_request:
+      branches: [main, master, develop]
+
+jobs:
+  deploy:
+    name: Deploy to Cloud Run
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: 'read'
+      id-token: 'write'
+
+    env:
+      GCP_PROJECT_ID: 'aa-dashboard-457316'
+      FIREBASE_PROJECT_ID: 'aa-dashboard-457316'
+      REGION: 'asia-northeast1'
+      GAR_LOCATION: 'asia-northeast1'
+      CLOUD_RUN_SERVICE_ID: 'nextjs-frontend-service'
+      NEXT_PUBLIC_PIMLICO_API_KEY: 'pim_DTxy8ZLRukyrD7tWAoJoaF'
+      NEXT_PUBLIC_ALCHEMY_API_KEY: '3aWVFKmukdYKkVJJp-jqN67y2Zl3Jf4M'
+      NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID: '99b15bcb8521939fe789664e3b673c41'
+      NEXT_PUBLIC_WEB3AUTH_CLIENT_ID: 'BJfMKyJlZQ8FpNDJMDQACOFh8ovB83MSaOoIS9uiWUDqSSI2JsSDYrPQWMdm1jvudXvAFXySyVrnZNlWGdLdW40'
+      NEXT_PUBLIC_BACKEND_API_BASE_URL: '/api'
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - id: 'auth'
+        name: 'Authenticate to Google Cloud'
+        uses: 'google-github-actions/auth@v1'
+        with:
+          workload_identity_provider: 'projects/429781279541/locations/global/workloadIdentityPools/github-actions-pool/providers/github-provider'
+          service_account: 'github-actions@aa-dashboard-457316.iam.gserviceaccount.com'
+
+      - name: 'Set up Cloud SDK'
+        uses: 'google-github-actions/setup-gcloud@v1'
+
+      - name: 'Set up Docker Buildx'
+        uses: docker/setup-buildx-action@v2
+
+      - name: Generate image tag
+        run: |
+          echo "IMAGE_TAG=github-$(date +%Y%m%d%H%M%S)" >> $GITHUB_ENV
+          echo "IMAGE_NAME=${GAR_LOCATION}-docker.pkg.dev/${GCP_PROJECT_ID}/cloudrun/${CLOUD_RUN_SERVICE_ID}" >> $GITHUB_ENV
+
+      - name: Configure Docker for Artifact Registry
+        run: |
+          gcloud auth configure-docker "${GAR_LOCATION}-docker.pkg.dev" --quiet
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v4
+        with:
+          context: ./aa-front
+          file: ./aa-front/Dockerfile
+          push: true
+          tags: ${{ env.IMAGE_NAME }}:${{ env.IMAGE_TAG }}
+          platforms: linux/amd64
+          build-args: |
+            NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID=${{ env.NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID }}
+            NEXT_PUBLIC_ALCHEMY_API_KEY=${{ env.NEXT_PUBLIC_ALCHEMY_API_KEY }}
+            NEXT_PUBLIC_PIMLICO_API_KEY=${{ env.NEXT_PUBLIC_PIMLICO_API_KEY }}
+            NEXT_PUBLIC_WEB3AUTH_CLIENT_ID=${{ env.NEXT_PUBLIC_WEB3AUTH_CLIENT_ID }}
+            NEXT_PUBLIC_BACKEND_API_BASE_URL=${{ env.NEXT_PUBLIC_BACKEND_API_BASE_URL }}
+          target: runner
+
+      - name: Deploy to Cloud Run
+        run: |
+          gcloud run deploy "${CLOUD_RUN_SERVICE_ID}" \
+            --project="${GCP_PROJECT_ID}" \
+            --image="${IMAGE_NAME}:${IMAGE_TAG}" \
+            --region="${REGION}" \
+            --platform=managed \
+            --port=3000 \
+            --allow-unauthenticated \
+            --update-env-vars="NODE_ENV=production"
+
+      - name: Output Service URL
+        run: |
+          echo "Cloud Run deployment completed."
+          echo "Service URL: $(gcloud run services describe ${CLOUD_RUN_SERVICE_ID} --region=${REGION} --format='value(status.url)')"
+
+      - name: Extract static files from Docker image
+        run: |
+          echo "Extracting static files from Docker image..."
+          TEMP_CONTAINER_ID=$(docker create "${IMAGE_NAME}:${IMAGE_TAG}")
+
+          mkdir -p "public_deploy"
+          mkdir -p "public_deploy/_next"
+
+          docker cp "${TEMP_CONTAINER_ID}:/app/public/." "public_deploy/" || echo "Warning: /app/public not found in container."
+          docker cp "${TEMP_CONTAINER_ID}:/app/.next/static/." "public_deploy/_next/static/" || echo "Warning: /app/.next/static not found in container."
+
+          docker rm "${TEMP_CONTAINER_ID}"
+
+          echo "Static assets prepared in public_deploy directory."
+
+      # Firebase CLIのセットアップ
+      - name: Setup Firebase CLI
+        run: npm install -g firebase-tools
+
+      # Firebase Hostingへのデプロイ
+      - name: Deploy to Firebase Hosting
+        run: |
+          if [ -d "public_deploy/_next/static" ] || [ "$(ls -A public_deploy | grep -v '_next')" ]; then
+            firebase deploy --only hosting --project "${FIREBASE_PROJECT_ID}" --token "${{ secrets.FIREBASE_TOKEN }}"
+          else
+            echo "Warning: No static assets found to deploy to Firebase Hosting. Skipping deployment."
+          fi
