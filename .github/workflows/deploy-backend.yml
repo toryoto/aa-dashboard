@@ -3,9 +3,13 @@ name: Deploy Express.js API to Cloud Run
 on:
   push:
     branches:
-      - main # メインブランチへのプッシュ時に実行
+      - main
     paths:
-      - 'api/**' # apiディレクトリ内のファイルが変更された場合のみ実行
+      - 'api/**'
+  pull_request:
+    branches: main
+    paths:
+      - 'api/**'
 
 jobs:
   deploy:
@@ -29,7 +33,7 @@ jobs:
       - name: Deploy to Cloud Run
         run: |
           gcloud run deploy backend-api \
-            --project=${{ secrets.GCP_PROJECT_ID }} \
+            --project=aa-dashboard-457316 \
             --source ./api \
             --region asia-northeast1 \
             --platform managed \
