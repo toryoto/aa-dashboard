@@ -11,23 +11,31 @@ jobs:
     name: Deploy to Cloud Run
     runs-on: ubuntu-latest
 
+    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
+
+    permissions:
+      contents: 'read'
+      id-token: 'write'
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
 
-      - name: Set up Google Cloud SDK
-        uses: google-github-actions/setup-gcloud@v1
+      - id: 'auth'
+        name: 'Authenticate to Google Cloud'
+        uses: 'google-github-actions/auth@v1'
         with:
-          project_id: aa-dashboard-457316
-          service_account_key: ${{ secrets.GCP_SA_KEY }}
-          export_default_credentials: true
+          workload_identity_provider: 'projects/429781279541/locations/global/workloadIdentityPools/github-actions-pool/providers/github-provider'
+          service_account: 'github-actions@aa-dashboard-457316.iam.gserviceaccount.com'
 
-      - name: Authenticate Docker to Google Cloud
-        run: gcloud auth configure-docker asia-northeast1-docker.pkg.dev
+      - name: 'Set up Cloud SDK'
+        uses: 'google-github-actions/setup-gcloud@v1'
 
       - name: Deploy to Cloud Run
         run: |
-          gcloud run deploy backend-api \
+          SERVICE_NAME="backend-api"
+
+          gcloud run deploy ${SERVICE_NAME} \
             --project=aa-dashboard-457316 \
             --source ./api \
             --region asia-northeast1 \
@@ -38,6 +46,6 @@ jobs:
             --update-secrets="ALCHEMY_API_KEY=ALCHEMY_API_KEY:latest,PAYMASTER_PRIVATE_KEY=PAYMASTER_PRIVATE_KEY:latest"
 
       - name: Output Service URL
+        if: success()
         run: |
-          echo "デプロイが完了しました！"
-          echo "サービスURL: $(gcloud run services describe backend-api --region asia-northeast1 --format='value(status.url)')"
+          SERVICE_NAME="backend-api"
