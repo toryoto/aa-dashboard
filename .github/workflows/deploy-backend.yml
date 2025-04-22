@@ -1,42 +1,43 @@
-name: Deploy Backend
+name: Deploy Express.js API to Cloud Run
 
 on:
   push:
-    branches: [main, master]
-    paths:
-      - 'api/**'
-      - '.github/workflows/deploy-backend.yml'
+    branches:
+      - main
+      - develop
 
 jobs:
   deploy:
+    name: Deploy to Cloud Run
     runs-on: ubuntu-latest
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
 
-      - name: Setup Google Cloud SDK
-        uses: google-github-actions/setup-gcloud@v2
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Set up Google Cloud SDK
+        uses: google-github-actions/setup-gcloud@v1
         with:
           project_id: aa-dashboard-457316
           service_account_key: ${{ secrets.GCP_SA_KEY }}
           export_default_credentials: true
 
+      - name: Authenticate Docker to Google Cloud
+        run: gcloud auth configure-docker asia-northeast1-docker.pkg.dev
+
       - name: Deploy to Cloud Run
-        env:
-          REGION: "asia-northeast1"
-          BACKEND_SERVICE_NAME: "backend-api"
-          PAYMASTER_ADDRESS: "0x415b4ceC5cf512CeDBE09C12081A0b75E13854Ff"
         run: |
-          NON_SECRET_ENV_VARS="NODE_ENV=production,PAYMASTER_ADDRESS=${PAYMASTER_ADDRESS}"
-          
-          # Cloud Runへのデプロイ
-          echo "Deploying to Cloud Run: ${BACKEND_SERVICE_NAME}"
-          gcloud run deploy ${BACKEND_SERVICE_NAME} \
+          gcloud run deploy backend-api \
             --project=aa-dashboard-457316 \
             --source ./api \
-            --region ${REGION} \
+            --region asia-northeast1 \
             --platform managed \
             --allow-unauthenticated \
             --port 4000 \
-            --update-env-vars "${NON_SECRET_ENV_VARS}" \
+            --update-env-vars "NODE_ENV=production,PAYMASTER_ADDRESS=0x415b4ceC5cf512CeDBE09C12081A0b75E13854Ff" \
             --update-secrets="ALCHEMY_API_KEY=ALCHEMY_API_KEY:latest,PAYMASTER_PRIVATE_KEY=PAYMASTER_PRIVATE_KEY:latest"
+
+      - name: Output Service URL
+        run: |
+          echo "デプロイが完了しました！"
+          echo "サービスURL: $(gcloud run services describe backend-api --region asia-northeast1 --format='value(status.url)')"

@@ -79,7 +79,7 @@ export default function AAWallet() {
           <div className="bg-primary/10 p-2 rounded-full">
             <Shield className="h-6 w-6 text-primary" />
           </div>
-          <h1 className="text-2xl font-bold tracking-tight">Smart Account Dashboard</h1>
+          <h1 className="text-2xl font-bold tracking-tight">Account Abstraction Dashboard</h1>
         </div>
         <ConnectButton />
       </div>
