@@ -36,7 +36,7 @@ jobs:
         uses: 'google-github-actions/auth@v2'
         with:
           project_id: '${{ env.GCP_PROJECT_ID }}'
-          workload_identity_provider: 'projects/429781279541/locations/global/workloadIdentityPools/github-actions-pool/providers/github'
+          workload_identity_provider: 'projects/429781279541/locations/global/workloadIdentityPools/github-actions-pool/providers/github-provider'
           token_format: 'access_token'
           service_account: 'github-actions@aa-dashboard-457316.iam.gserviceaccount.com'
 
