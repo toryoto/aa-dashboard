@@ -13,6 +13,8 @@ services:
       - '3000:3000'
     environment:
       - NODE_ENV=development
+    env_file:
+      - ./.env
     volumes:
       - ./aa-front:/app
       - /app/node_modules
@@ -28,9 +30,8 @@ services:
       - NODE_ENV=development
       - PORT=4000
       - FRONTEND_URL=http://frontend:3000
-      - ALCHEMY_API_KEY=${ALCHEMY_API_KEY}
-      - PAYMASTER_PRIVATE_KEY=${PAYMASTER_PRIVATE_KEY}
-      - PAYMASTER_ADDRESS=${PAYMASTER_ADDRESS}
+    env_file:
+      - ./.env
     volumes:
       - ./api:/app
       - /app/node_modules
