@@ -1,8 +1,8 @@
 import express from 'express'
 import { generatePaymasterData } from '../controllers/paymasterController'
 
-const router = express.Router()
+const paymasterRoutes = express.Router()
 
-router.post('/generatePaymasterData', generatePaymasterData)
+paymasterRoutes.post('/generatePaymasterData', generatePaymasterData)
 
-export default router
+export default paymasterRoutes

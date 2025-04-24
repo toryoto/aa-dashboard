@@ -22,7 +22,7 @@ export const handleFaucetRequest = async (req: any, res: any) => {
     const { walletAddress } = req.body
     
     if (!walletAddress || !/^0x[a-fA-F0-9]{40}$/.test(walletAddress)) {
-      return res.status(400).json({ error: 'ウォレットアドレスが無効です' })
+      return res.status(400).json({ error: 'Invalid Wallet Address' })
     }
 
     const hash = await walletClient.sendTransaction({
