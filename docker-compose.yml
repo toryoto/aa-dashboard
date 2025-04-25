@@ -35,7 +35,7 @@ services:
     volumes:
       - ./api:/app
       # - /app/node_modules
-  
+
   db:
     image: postgres:15-alpine
     container_name: postgres_pta

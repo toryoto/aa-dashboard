@@ -15,9 +15,7 @@ const account = privateKeyToAccount(FAUCET_ADMIN_PRIVATE_KEY)
 const walletClient = createWalletClient({
   account,
   chain: sepolia,
-  transport: http(
-    `https://eth-sepolia.g.alchemy.com/v2/${process.env.ALCHEMY_API_KEY}`
-  ),
+  transport: http(`https://eth-sepolia.g.alchemy.com/v2/${process.env.ALCHEMY_API_KEY}`),
 })
 
 const checkAccessLimit = async (walletAddress: string, ipAddress: string, func: string) => {
@@ -31,8 +29,8 @@ const checkAccessLimit = async (walletAddress: string, ipAddress: string, func: 
         identifier: ipAddress,
         identifierType: 'ip',
         feature: func,
-      }
-    }
+      },
+    },
   })
 
   if (ipRecord) {
@@ -45,7 +43,7 @@ const checkAccessLimit = async (walletAddress: string, ipAddress: string, func: 
       // 24時間経過していればリセット
       await prisma.accessLimit.update({
         where: { id: ipRecord.id },
-        data: { firstRequestAt: now, requestCount: 1 }
+        data: { firstRequestAt: now, requestCount: 1 },
       })
     }
   } else {
@@ -55,8 +53,8 @@ const checkAccessLimit = async (walletAddress: string, ipAddress: string, func: 
         identifierType: 'ip',
         feature: func,
         firstRequestAt: now,
-        requestCount: 1
-      }
+        requestCount: 1,
+      },
     })
   }
 
@@ -67,8 +65,8 @@ const checkAccessLimit = async (walletAddress: string, ipAddress: string, func: 
         identifier: walletAddress,
         identifierType: 'wallet',
         feature: func,
-      }
-    }
+      },
+    },
   })
 
   if (walletRecord) {
@@ -80,7 +78,7 @@ const checkAccessLimit = async (walletAddress: string, ipAddress: string, func: 
     } else {
       await prisma.accessLimit.update({
         where: { id: walletRecord.id },
-        data: { firstRequestAt: now, requestCount: 1 }
+        data: { firstRequestAt: now, requestCount: 1 },
       })
     }
   } else {
@@ -90,8 +88,8 @@ const checkAccessLimit = async (walletAddress: string, ipAddress: string, func: 
         identifierType: 'wallet',
         feature: func,
         firstRequestAt: now,
-        requestCount: 1
-      }
+        requestCount: 1,
+      },
     })
   }
 
@@ -99,13 +97,16 @@ const checkAccessLimit = async (walletAddress: string, ipAddress: string, func: 
   if (ipRecord && now.getTime() - new Date(ipRecord.firstRequestAt).getTime() < limitWindow) {
     await prisma.accessLimit.update({
       where: { id: ipRecord.id },
-      data: { requestCount: { increment: 1 } }
+      data: { requestCount: { increment: 1 } },
     })
   }
-  if (walletRecord && now.getTime() - new Date(walletRecord.firstRequestAt).getTime() < limitWindow) {
+  if (
+    walletRecord &&
+    now.getTime() - new Date(walletRecord.firstRequestAt).getTime() < limitWindow
+  ) {
     await prisma.accessLimit.update({
       where: { id: walletRecord.id },
-      data: { requestCount: { increment: 1 } }
+      data: { requestCount: { increment: 1 } },
     })
   }
 
@@ -115,7 +116,7 @@ const checkAccessLimit = async (walletAddress: string, ipAddress: string, func: 
 export const handleFaucetRequest = async (req: any, res: any) => {
   try {
     const { walletAddress } = req.body
-    
+
     if (!walletAddress || !/^0x[a-fA-F0-9]{40}$/.test(walletAddress)) {
       return res.status(400).json({ error: 'Invalid Wallet Address' })
     }
@@ -128,19 +129,19 @@ export const handleFaucetRequest = async (req: any, res: any) => {
 
     const hash = await walletClient.sendTransaction({
       to: walletAddress as `0x${string}`,
-      value: parseEther('0.001')
+      value: parseEther('0.001'),
     })
 
     const transaction = await publicClient.getTransaction({
-      hash
+      hash,
     })
 
     console.log(transaction)
 
-    return res.status(200).json({ 
-      status: 'success', 
+    return res.status(200).json({
+      status: 'success',
       txHash: hash,
-      message: '0.01 Sepolia ETH has been sent'
+      message: '0.01 Sepolia ETH has been sent',
     })
   } catch (error) {
     console.error('Faucet API error:', error)
