@@ -40,6 +40,9 @@ COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma
 
 RUN npm ci --only=production
 
+# DBの本番用デプロイ
+RUN npx prisma migrate deploy
+
 # ポート設定と起動コマンド
 EXPOSE 4000
 CMD ["npm", "start"]
