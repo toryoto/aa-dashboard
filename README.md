@@ -22,6 +22,23 @@ This project uses Docker Compose to manage the application services for local de
       docker-compose up
       ```
 
+### Database Operations (with Docker + Prisma)
+
+Common commands for managing the database inside Docker containers:
+
+| Task                        | Command                                                                 |
+|-----------------------------|------------------------------------------------------------------------|
+| Create & apply migration    | `docker-compose exec backend npx prisma migrate dev --name <name>`      |
+| Apply existing migrations   | `docker-compose exec backend npx prisma migrate dev`                    |
+| Generate Prisma client      | `docker-compose exec backend npx prisma generate`                       |
+| Open Prisma Studio (GUI)    | `docker-compose exec backend npx prisma studio`                         |
+| Reset database (dev only)   | `docker-compose exec backend npx prisma migrate reset`                  |
+| Enter DB container (psql)   | `docker-compose exec db sh`                                            |
+
+> Replace `<name>` with your migration name (e.g., `add_user_table`).
+
+_Use these commands to manage database schema and inspect data during development._
+
 ### Accessing the Services
 
 Once the containers are running:
