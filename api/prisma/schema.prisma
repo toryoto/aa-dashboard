@@ -1,0 +1,30 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model AccessLimit {
+  id             Int      @id @default(autoincrement())
+  identifier     String   // IPアドレスまたはウォレットアドレス
+  identifierType String   // 'ip' または 'wallet'
+  feature        String   // 機能名（例：'faucet, nft_mint'）
+  firstRequestAt DateTime @default(now())
+  requestCount   Int      @default(1)
+
+  @@unique([identifier, identifierType, feature], name: "idx_identifier_type_feature")
+  @@map("access_limits")
+}
+
+// CREATE INDEX idx_identifier_type ON access_limits (identifier_type, identifier);
+// CREATE INDEX idx_reset_at ON access_limits (reset_at);
