@@ -45,7 +45,6 @@ COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma
 
 # DBの本番用デプロイ
 # RUN npx prisma migrate deploy
-RUN npx prisma generate --data-proxy false 
 
 # ポート設定と起動コマンド
 EXPOSE 4000
