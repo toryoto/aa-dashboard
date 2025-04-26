@@ -24,7 +24,7 @@ export const Faucet: React.FC<FaucetProps> = ({ isDeployed, onFaucetComplete }) 
   const handleRequestFunds = async () => {
     setIsLoading(true)
     setResult(null)
-    
+
     try {
       const response = await fetch('/api/faucet', {
         method: 'POST',
@@ -42,7 +42,7 @@ export const Faucet: React.FC<FaucetProps> = ({ isDeployed, onFaucetComplete }) 
           hash: data.txHash,
           message: data.message || 'Test ETH has been sent to your Smart Account!',
         })
-        
+
         if (onFaucetComplete) {
           onFaucetComplete()
         }
@@ -124,8 +124,8 @@ export const Faucet: React.FC<FaucetProps> = ({ isDeployed, onFaucetComplete }) 
             <div>
               <h3 className="font-medium text-blue-800">About Sepolia Testnet Faucet</h3>
               <p className="text-sm text-blue-600 mt-1">
-                This faucet provides a small amount of Sepolia ETH for testing.
-                Limits: 1 request per wallet address per day, 3 requests per IP address per day.
+                This faucet provides a small amount of Sepolia ETH for testing. Limits: 1 request
+                per wallet address per day, 3 requests per IP address per day.
               </p>
             </div>
           </div>
@@ -142,8 +142,8 @@ export const Faucet: React.FC<FaucetProps> = ({ isDeployed, onFaucetComplete }) 
         </div>
 
         <div className="flex justify-center mt-4">
-          <Button 
-            onClick={handleRequestFunds} 
+          <Button
+            onClick={handleRequestFunds}
             disabled={isLoading || !aaAddress || aaAddress === '0x'}
             size="lg"
             className="w-full md:w-3/5 py-6"
