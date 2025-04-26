@@ -132,11 +132,9 @@ export const handleFaucetRequest = async (req: any, res: any) => {
       value: parseEther('0.001'),
     })
 
-    const transaction = await publicClient.getTransaction({
-      hash,
-    })
+    const receipt = await publicClient.waitForTransactionReceipt({ hash })
 
-    console.log(transaction)
+    console.log(receipt)
 
     return res.status(200).json({
       status: 'success',
