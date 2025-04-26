@@ -7,17 +7,18 @@ import dotenv from 'dotenv'
 
 dotenv.config()
 
+const PAYMASTER_PRIVATE_KEY = process.env.PAYMASTER_PRIVATE_KEY
+const PAYMASTER_ADDRESS = process.env.PAYMASTER_ADDRESS
 const privateKey = process.env.PAYMASTER_PRIVATE_KEY
 console.log('Debug: Raw PAYMASTER_PRIVATE_KEY from env:', process.env.PAYMASTER_PRIVATE_KEY)
-const PAYMASTER_PRIVATE_KEY = process.env.PAYMASTER_PRIVATE_KEY
 console.log('Debug: privateKey variable value:', privateKey)
-const PAYMASTER_ADDRESS = process.env.PAYMASTER_ADDRESS
+console.log('Debug: privateKey variable type:', typeof privateKey)
 
 if (!PAYMASTER_PRIVATE_KEY || !PAYMASTER_ADDRESS) {
   throw new Error('Required environment variables are not set')
 }
 
-const paymasterAccount = privateKeyToAccount(PAYMASTER_PRIVATE_KEY as `0x${string}`)
+const paymasterAccount = privateKeyToAccount(PAYMASTER_PRIVATE_KEY as Hex)
 
 const encodePaymasterAndData = ({ paymaster, data }: { paymaster: Hex; data: Hex }) => {
   const encoded = `${paymaster.replace('0x', '')}${data.replace('0x', '')}`
