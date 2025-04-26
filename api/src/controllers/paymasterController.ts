@@ -14,7 +14,7 @@ if (!PAYMASTER_PRIVATE_KEY || !PAYMASTER_ADDRESS) {
   throw new Error('Required environment variables are not set')
 }
 
-const paymasterAccount = privateKeyToAccount(PAYMASTER_PRIVATE_KEY as `0x${string}`)
+const paymasterAccount = privateKeyToAccount(PAYMASTER_PRIVATE_KEY as Hex)
 
 const encodePaymasterAndData = ({ paymaster, data }: { paymaster: Hex; data: Hex }) => {
   const encoded = `${paymaster.replace('0x', '')}${data.replace('0x', '')}`
