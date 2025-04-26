@@ -3,7 +3,7 @@ import { privateKeyToAccount } from 'viem/accounts'
 import { sepolia } from 'viem/chains'
 import { publicClient } from '../utils/client'
 import dotenv from 'dotenv'
-import { PrismaClient } from '../../generated/prisma'
+import { PrismaClient } from '@prisma/client'
 
 dotenv.config()
 

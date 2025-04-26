@@ -38,15 +38,16 @@ ENV PORT=4000
 COPY --from=builder /app/package*.json ./
 COPY --from=builder /app/dist ./dist
 COPY --from=builder /app/prisma ./prisma
-COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma
-COPY --from=builder /app/generated ./generated
+# COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma
+# COPY --from=builder /app/generated ./generated
 
 RUN npm ci --only=production
 
 # DBの本番用デプロイ
 # RUN npx prisma migrate deploy
+RUN npx prisma generate --data-proxy false 
 
 # ポート設定と起動コマンド
 EXPOSE 4000
-# CMD ["npm", "start"]
-CMD ["sh", "-c", "npx prisma migrate deploy && npm start"]
+CMD ["npm", "start"]
+# CMD ["sh", "-c", "npx prisma migrate deploy && npm start"]
