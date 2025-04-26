@@ -8,6 +8,8 @@ COPY package.json package-lock.json* ./
 
 RUN npm ci
 
+RUN npm install -g nodemon ts-node typescript
+
 # Prisma generate を実行
 COPY prisma ./prisma/
 RUN npx prisma generate
@@ -37,6 +39,7 @@ COPY --from=builder /app/package*.json ./
 COPY --from=builder /app/dist ./dist
 COPY --from=builder /app/prisma ./prisma
 COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma
+COPY --from=builder /app/generated ./generated
 
 RUN npm ci --only=production
 
@@ -46,3 +49,4 @@ RUN npx prisma migrate deploy
 # ポート設定と起動コマンド
 EXPOSE 4000
 CMD ["npm", "start"]
+# CMD ["sh", "-c", "npx prisma migrate deploy && npm start"]
