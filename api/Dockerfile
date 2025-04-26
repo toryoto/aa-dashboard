@@ -44,9 +44,9 @@ COPY --from=builder /app/generated ./generated
 RUN npm ci --only=production
 
 # DBの本番用デプロイ
-RUN npx prisma migrate deploy
+# RUN npx prisma migrate deploy
 
 # ポート設定と起動コマンド
 EXPOSE 4000
-CMD ["npm", "start"]
-# CMD ["sh", "-c", "npx prisma migrate deploy && npm start"]
+# CMD ["npm", "start"]
+CMD ["sh", "-c", "npx prisma migrate deploy && npm start"]
