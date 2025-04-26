@@ -7,7 +7,10 @@ import dotenv from 'dotenv'
 
 dotenv.config()
 
+const privateKey = process.env.PAYMASTER_PRIVATE_KEY
+console.log('Debug: Raw PAYMASTER_PRIVATE_KEY from env:', process.env.PAYMASTER_PRIVATE_KEY)
 const PAYMASTER_PRIVATE_KEY = process.env.PAYMASTER_PRIVATE_KEY
+console.log('Debug: privateKey variable value:', privateKey)
 const PAYMASTER_ADDRESS = process.env.PAYMASTER_ADDRESS
 
 if (!PAYMASTER_PRIVATE_KEY || !PAYMASTER_ADDRESS) {
