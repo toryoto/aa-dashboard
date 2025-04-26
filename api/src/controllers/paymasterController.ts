@@ -9,10 +9,6 @@ dotenv.config()
 
 const PAYMASTER_PRIVATE_KEY = process.env.PAYMASTER_PRIVATE_KEY
 const PAYMASTER_ADDRESS = process.env.PAYMASTER_ADDRESS
-const privateKey = process.env.PAYMASTER_PRIVATE_KEY
-console.log('Debug: Raw PAYMASTER_PRIVATE_KEY from env:', process.env.PAYMASTER_PRIVATE_KEY)
-console.log('Debug: privateKey variable value:', privateKey)
-console.log('Debug: privateKey variable type:', typeof privateKey)
 
 if (!PAYMASTER_PRIVATE_KEY || !PAYMASTER_ADDRESS) {
   throw new Error('Required environment variables are not set')
