@@ -33,7 +33,7 @@ export function useUserOperationExecutor(aaAddress: Hex) {
   const [isProcessing, setIsProcessing] = useState(false)
   const { getPaymasterAndData } = usePaymasterData()
   const { execute } = useExecuteUserOperation()
-  const { confirmUserOp } = useUserOpConfirmation()
+  const { showConfirmation, completeOperation } = useUserOpConfirmation()
   const { getMultiTokenPaymasterAndData, selectedToken, checkTokenAllowance } =
     useMultiTokenPaymasterData(aaAddress)
 
@@ -135,12 +135,13 @@ export function useUserOperationExecutor(aaAddress: Hex) {
 
   /**
    * 実際のUserOp実行処理を行う内部関数
+   * calldataと支払いoptionを引数に取り、UserOpの構築・実行を行う
    */
   const performExecution = useCallback(
     async (callData: Hex, options: ExecuteOptions = {}): Promise<ExecuteResult> => {
+      // デフォルトはガス代サポートもERC20支払いもなし
       const {
         initCode = '0x',
-        waitForReceipt = true,
         timeout = 60000,
         usePaymaster = false,
         multiTokenPaymaster = false,
@@ -164,10 +165,11 @@ export function useUserOperationExecutor(aaAddress: Hex) {
         if (customPaymasterAndData) {
           userOp.paymasterAndData = customPaymasterAndData
         } else if (usePaymaster) {
+          // ユーザがpaymaster使用を選択した場合、paymasterAndDataを作成する
           const paymasterAndData = await getPaymasterAndData(userOp)
           userOp.paymasterAndData = paymasterAndData
         } else if (multiTokenPaymaster) {
-          // トークンで支払う場合
+          // ユーザがERC20支払を選択した場合
           // tokenAddressが指定されている場合はそれを使用、そうでなければselectedToken
           const tokenToUse = tokenAddress || (selectedToken ? selectedToken.address : null)
 
@@ -193,16 +195,9 @@ export function useUserOperationExecutor(aaAddress: Hex) {
           const paymasterAndData = await getMultiTokenPaymasterAndData(userOp, tokenToUse as Hex)
           userOp.paymasterAndData = paymasterAndData
         }
-        // ネイティブ通貨で支払う場合は paymasterAndData は '0x' のまま
 
+        // paymasterを使用せずにネイティブ通貨で支払う場合は paymasterAndData は '0x' のまま
         const userOpHash = await execute(userOp)
-
-        if (!waitForReceipt) {
-          return {
-            success: true,
-            userOpHash,
-          }
-        }
 
         const receipt = await bundlerClient.waitForUserOperationReceipt({
           hash: userOpHash,
@@ -237,36 +232,45 @@ export function useUserOperationExecutor(aaAddress: Hex) {
     ]
   )
 
+  // 外部から呼び出す構築したcallDataを実行するためのメソッド
   const executeCallData = useCallback(
     async (callData: Hex, options: ExecuteOptions = {}): Promise<ExecuteResult> => {
-      return new Promise<ExecuteResult>((resolve, reject) => {
-        confirmUserOp(callData, async userSelection => {
-          try {
-            const updatedOptions: ExecuteOptions = {
-              ...options,
-              usePaymaster: userSelection.paymentOption === 'paymaster',
-              multiTokenPaymaster: userSelection.paymentOption === 'token',
-            }
+      try {
+        // 確認モーダルを表示し、ユーザーの選択を待つ
+        // 内部でPromiseが解決されると処理が進む
+        const userSelection = await showConfirmation(callData)
 
-            if (userSelection.paymentOption === 'token' && userSelection.tokenAddress) {
-              updatedOptions.tokenAddress = userSelection.tokenAddress
-            }
+        // ユーザーのガス代支払い方法選択を反映したオプションを作成： 該当支払い方法をtrueにする
+        const updatedOptions: ExecuteOptions = {
+          ...options,
+          usePaymaster: userSelection.paymentOption === 'paymaster',
+          multiTokenPaymaster: userSelection.paymentOption === 'token',
+        }
 
-            const result = await performExecution(callData, updatedOptions)
-            resolve(result)
-          } catch (error) {
-            console.error('実行中にエラーが発生しました:', error)
-            reject(error)
-          }
-        })
-      })
+        if (userSelection.paymentOption === 'token' && userSelection.tokenAddress) {
+          updatedOptions.tokenAddress = userSelection.tokenAddress
+        }
+
+        const result = await performExecution(callData, updatedOptions)
+
+        // 処理完了を通知（モーダルを閉じる）
+        completeOperation(result.success)
+
+        return result
+      } catch (error) {
+        console.error('UserOperation実行中にエラーが発生しました:', error)
+        completeOperation(false)
+        return {
+          success: false,
+          error: error instanceof Error ? error.message : '不明なエラーが発生しました',
+        }
+      }
     },
-    [performExecution, confirmUserOp]
+    [showConfirmation, performExecution]
   )
 
   return {
     executeCallData,
-    createUserOperation,
     isProcessing,
   }
 }
