@@ -9,6 +9,8 @@ import { useExecuteUserOperation } from './useExecuteUserOperation'
 import { useUserOpConfirmation } from '../contexts/UserOpConfirmationContext'
 import { useMultiTokenPaymasterData } from './useMultiTokenPaymasterData'
 import { SimpleAccountABI } from '../abi/simpleAccount'
+import { useCreateUserOperation } from './useCreateUserOperation'
+import { useEstimateUserOperationGas } from './useEstimateUserOperationGas'
 
 interface ExecuteOptions {
   initCode?: Hex
@@ -36,95 +38,8 @@ export function useUserOperationExecutor(aaAddress: Hex) {
   const { showConfirmation, completeOperation } = useUserOpConfirmation()
   const { getMultiTokenPaymasterAndData, selectedToken, checkTokenAllowance } =
     useMultiTokenPaymasterData(aaAddress)
-
-  /**
-   * UserOperationのガス推定を行うメソッド
-   */
-  const estimateUserOperationGas = useCallback(
-    async (userOp: UserOperation): Promise<UserOperation> => {
-      try {
-        // ダミー署名の設定（シミュレーション用）
-        const dummyUserOp = {
-          ...userOp,
-          signature: '0xfffffffffffffffffffffffffffffff0000000000000000000000000000000007aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa1c' as `0x${string}`,
-        }
-        
-        // eth_estimateUserOperationGasの呼び出し
-        const gasEstimation = await bundlerClient.request({
-          jsonrpc: '2.0',
-          method: 'eth_estimateUserOperationGas',
-          params: [dummyUserOp, ENTRY_POINT_ADDRESS],
-        })
-
-        console.log('gasEstimation', gasEstimation)
-        
-        // 推定結果が返ってきた場合、ガス値を更新
-        if (gasEstimation) {
-          return {
-            ...userOp,
-            callGasLimit: gasEstimation.callGasLimit || userOp.callGasLimit,
-            verificationGasLimit: gasEstimation.verificationGasLimit || userOp.verificationGasLimit,
-            preVerificationGas: gasEstimation.preVerificationGas || userOp.preVerificationGas,
-          }
-        }
-        
-        return userOp
-      } catch (error) {
-        console.warn('ガス推定に失敗しました、デフォルト値を使用します:', error)
-        return userOp
-      }
-    },
-    []
-  )
-
-  /**
-   * UserOperation を作成するメソッド
-   */
-  const createUserOperation = useCallback(
-    async ({
-      aaAddress,
-      initCode = '0x',
-      callData = '0x',
-    }: {
-      aaAddress: Hex
-      initCode?: Hex
-      callData?: Hex
-    }): Promise<UserOperation> => {
-      try {
-        const nonce = (await publicClient.readContract({
-          address: ENTRY_POINT_ADDRESS,
-          abi: entryPointAbi,
-          functionName: 'getNonce',
-          args: [aaAddress, BigInt(0)],
-        })) as bigint
-
-        if (nonce === null) {
-          throw new Error('Nonce is not fetched yet.')
-        }
-
-        // 現在のガス価格を取得
-        const feeData = await publicClient.estimateFeesPerGas()
-
-        return {
-          sender: aaAddress,
-          nonce: toHex(nonce),
-          initCode,
-          callData,
-          callGasLimit: toHex(300_000),
-          verificationGasLimit: toHex(200_000),
-          preVerificationGas: toHex(50_000),
-          maxFeePerGas: toHex(feeData.maxFeePerGas || 500_000_000),
-          maxPriorityFeePerGas: toHex(feeData.maxPriorityFeePerGas || 200_000_000),
-          paymasterAndData: '0x',
-          signature: '0x',
-        }
-      } catch (error) {
-        console.error('Error fetching nonce:', error)
-        throw error
-      }
-    },
-    []
-  )
+  const { createUserOperation } = useCreateUserOperation()
+  const { estimateUserOperationGas } = useEstimateUserOperationGas()
 
   const approveTokenForPaymaster = useCallback(
     async (tokenAddress: Hex): Promise<ExecuteResult> => {
@@ -274,7 +189,6 @@ export function useUserOperationExecutor(aaAddress: Hex) {
     },
     [
       aaAddress,
-      createUserOperation,
       estimateUserOperationGas,
       getPaymasterAndData,
       execute,
