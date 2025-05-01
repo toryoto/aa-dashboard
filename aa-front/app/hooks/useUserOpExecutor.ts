@@ -38,6 +38,46 @@ export function useUserOperationExecutor(aaAddress: Hex) {
     useMultiTokenPaymasterData(aaAddress)
 
   /**
+   * UserOperationのガス推定を行うメソッド
+   */
+  const estimateUserOperationGas = useCallback(
+    async (userOp: UserOperation): Promise<UserOperation> => {
+      try {
+        // ダミー署名の設定（シミュレーション用）
+        const dummyUserOp = {
+          ...userOp,
+          signature: '0xfffffffffffffffffffffffffffffff0000000000000000000000000000000007aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa1c' as `0x${string}`,
+        }
+        
+        // eth_estimateUserOperationGasの呼び出し
+        const gasEstimation = await bundlerClient.request({
+          jsonrpc: '2.0',
+          method: 'eth_estimateUserOperationGas',
+          params: [dummyUserOp, ENTRY_POINT_ADDRESS],
+        })
+
+        console.log('gasEstimation', gasEstimation)
+        
+        // 推定結果が返ってきた場合、ガス値を更新
+        if (gasEstimation) {
+          return {
+            ...userOp,
+            callGasLimit: gasEstimation.callGasLimit || userOp.callGasLimit,
+            verificationGasLimit: gasEstimation.verificationGasLimit || userOp.verificationGasLimit,
+            preVerificationGas: gasEstimation.preVerificationGas || userOp.preVerificationGas,
+          }
+        }
+        
+        return userOp
+      } catch (error) {
+        console.warn('ガス推定に失敗しました、デフォルト値を使用します:', error)
+        return userOp
+      }
+    },
+    []
+  )
+
+  /**
    * UserOperation を作成するメソッド
    */
   const createUserOperation = useCallback(
@@ -62,6 +102,9 @@ export function useUserOperationExecutor(aaAddress: Hex) {
           throw new Error('Nonce is not fetched yet.')
         }
 
+        // 現在のガス価格を取得
+        const feeData = await publicClient.estimateFeesPerGas()
+
         return {
           sender: aaAddress,
           nonce: toHex(nonce),
@@ -70,8 +113,8 @@ export function useUserOperationExecutor(aaAddress: Hex) {
           callGasLimit: toHex(300_000),
           verificationGasLimit: toHex(200_000),
           preVerificationGas: toHex(50_000),
-          maxFeePerGas: toHex(500_000_000),
-          maxPriorityFeePerGas: toHex(200_000_000),
+          maxFeePerGas: toHex(feeData.maxFeePerGas || 500_000_000),
+          maxPriorityFeePerGas: toHex(feeData.maxPriorityFeePerGas || 200_000_000),
           paymasterAndData: '0x',
           signature: '0x',
         }
@@ -156,11 +199,20 @@ export function useUserOperationExecutor(aaAddress: Hex) {
       setIsProcessing(true)
 
       try {
-        const userOp = await createUserOperation({
+        // 基本的なUserOpを作成
+        let userOp = await createUserOperation({
           aaAddress,
           callData,
           initCode,
         })
+
+        try {
+          userOp = await estimateUserOperationGas(userOp)
+          console.log(userOp)
+        } catch (estimateError) {
+          console.warn('ガス推定に失敗しました:', estimateError)
+          // エラーが発生しても続行（デフォルト値を使用）
+        }
 
         if (customPaymasterAndData) {
           userOp.paymasterAndData = customPaymasterAndData
@@ -223,6 +275,7 @@ export function useUserOperationExecutor(aaAddress: Hex) {
     [
       aaAddress,
       createUserOperation,
+      estimateUserOperationGas,
       getPaymasterAndData,
       execute,
       getMultiTokenPaymasterAndData,
@@ -266,7 +319,7 @@ export function useUserOperationExecutor(aaAddress: Hex) {
         }
       }
     },
-    [showConfirmation, performExecution]
+    [showConfirmation, performExecution, completeOperation]
   )
 
   return {
