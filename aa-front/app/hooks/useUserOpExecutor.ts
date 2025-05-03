@@ -9,6 +9,7 @@ import { useMultiTokenPaymasterData } from './useMultiTokenPaymasterData'
 import { SimpleAccountABI } from '../abi/simpleAccount'
 import { useCreateUserOperation } from './useCreateUserOperation'
 import { useEstimateUserOperationGas } from './useEstimateUserOperationGas'
+import { UserOperation } from '../lib/userOperationType'
 
 interface ExecuteOptions {
   initCode?: Hex
@@ -94,7 +95,7 @@ export function useUserOperationExecutor(aaAddress: Hex) {
    * calldataと支払いoptionを引数に取り、UserOpの構築・実行を行う
    */
   const performExecution = useCallback(
-    async (callData: Hex, options: ExecuteOptions = {}): Promise<ExecuteResult> => {
+    async (userOp: UserOperation, options: ExecuteOptions = {}): Promise<ExecuteResult> => {
       // デフォルトはガス代サポートもERC20支払いもなし
       const {
         initCode = '0x',
@@ -112,22 +113,6 @@ export function useUserOperationExecutor(aaAddress: Hex) {
       setIsProcessing(true)
 
       try {
-        // 基本的なUserOpを作成
-        let userOp = await createUserOperation({
-          aaAddress,
-          callData,
-          initCode,
-        })
-
-        // gas代の推定を取得
-        try {
-          userOp = await estimateUserOperationGas(userOp)
-          console.log(userOp)
-        } catch (estimateError) {
-          console.warn('ガス推定に失敗しました:', estimateError)
-          // エラーが発生しても続行（デフォルト値を使用）
-        }
-
         if (customPaymasterAndData) {
           userOp.paymasterAndData = customPaymasterAndData
         } else if (usePaymaster) {
@@ -188,13 +173,11 @@ export function useUserOperationExecutor(aaAddress: Hex) {
     },
     [
       aaAddress,
-      estimateUserOperationGas,
       getPaymasterAndData,
       execute,
       getMultiTokenPaymasterAndData,
       checkTokenAllowance,
       approveTokenForPaymaster,
-      createUserOperation,
       selectedToken,
     ]
   )
@@ -203,11 +186,37 @@ export function useUserOperationExecutor(aaAddress: Hex) {
   const executeCallData = useCallback(
     async (callData: Hex, options: ExecuteOptions = {}): Promise<ExecuteResult> => {
       try {
-        // 確認モーダルを表示し、ユーザーの選択を待つ
-        // 内部でPromiseが解決されると処理が進む
-        const userSelection = await showConfirmation(callData)
+        // 基本的なUserOpを作成
+        const userOp = await createUserOperation({
+          aaAddress,
+          callData,
+          initCode: options.initCode || '0x',
+        })
 
-        // ユーザーのガス代支払い方法選択を反映したオプションを作成： 該当支払い方法をtrueにする
+        // ガス代の推定を取得
+        let gasEstimateInfo
+        try {
+          const { userOpResult, totalGasEth } = await estimateUserOperationGas(userOp)
+
+          // ガス見積もり情報を作成
+          gasEstimateInfo = {
+            totalGasEth: totalGasEth,
+            callGasLimit: userOpResult.callGasLimit,
+            verificationGasLimit: userOpResult.verificationGasLimit,
+            preVerificationGas: userOpResult.preVerificationGas,
+          }
+
+          console.log('Gas estimate:', gasEstimateInfo)
+        } catch (estimateError) {
+          console.warn('ガス推定に失敗しました:', estimateError)
+          // エラーが発生しても続行（情報なしで）
+        }
+
+        // 確認モーダルを表示し、ユーザーの選択を待つ
+        // ガス見積もり情報もモーダルに渡す
+        const userSelection = await showConfirmation(callData, gasEstimateInfo)
+
+        // ユーザーのガス代支払い方法選択を反映したオプションを作成
         const updatedOptions: ExecuteOptions = {
           ...options,
           usePaymaster: userSelection.paymentOption === 'paymaster',
@@ -218,7 +227,7 @@ export function useUserOperationExecutor(aaAddress: Hex) {
           updatedOptions.tokenAddress = userSelection.tokenAddress
         }
 
-        const result = await performExecution(callData, updatedOptions)
+        const result = await performExecution(userOp, updatedOptions)
 
         // 処理完了を通知（モーダルを閉じる）
         completeOperation(result.success)
@@ -233,7 +242,14 @@ export function useUserOperationExecutor(aaAddress: Hex) {
         }
       }
     },
-    [showConfirmation, performExecution, completeOperation]
+    [
+      aaAddress,
+      createUserOperation,
+      estimateUserOperationGas,
+      showConfirmation,
+      performExecution,
+      completeOperation,
+    ]
   )
 
   return {

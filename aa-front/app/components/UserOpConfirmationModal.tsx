@@ -12,11 +12,20 @@ import { Label } from './ui/label'
 import { TOKEN_OPTIONS } from '../constants/tokenList'
 import { DAI_ADDRESS } from '../constants/addresses'
 import Image from 'next/image'
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from './ui/tooltip'
+import { Badge } from './ui/badge'
 
 // ユーザー選択の型定義
 export type UserOpSelection = {
   paymentOption: 'native' | 'token' | 'paymaster'
   tokenAddress?: string
+}
+
+interface GasEstimateInfo {
+  totalGasEth: string
+  callGasLimit: string
+  verificationGasLimit: string
+  preVerificationGas: string
 }
 
 interface UserOpConfirmationModalProps {
@@ -25,6 +34,7 @@ interface UserOpConfirmationModalProps {
   onConfirm: (selection: UserOpSelection) => void
   isProcessing: boolean
   callData: Hex | null
+  gasEstimate?: GasEstimateInfo
 }
 
 interface DecodedSingleCallData {
@@ -200,6 +210,7 @@ export const UserOpConfirmationModal: React.FC<UserOpConfirmationModalProps> = (
   onConfirm,
   isProcessing,
   callData,
+  gasEstimate,
 }) => {
   const [selection, setSelection] = useState<UserOpSelection>({
     paymentOption: 'native',
@@ -259,7 +270,6 @@ export const UserOpConfirmationModal: React.FC<UserOpConfirmationModalProps> = (
               <span className="text-sm font-mono">{decodedData.functionName}</span>
             </div>
 
-            {/* If we have inner operations (execute or executeBatch) */}
             {decodedData.operations && decodedData.operations.length > 0 && (
               <div className="mb-3">
                 <span className="text-sm font-medium">Operations:</span>
@@ -298,6 +308,32 @@ export const UserOpConfirmationModal: React.FC<UserOpConfirmationModalProps> = (
                       )}
                     </div>
                   ))}
+                </div>
+              </div>
+            )}
+
+            {gasEstimate && (
+              <div className="mt-4 border-t pt-3">
+                <h4 className="text-sm font-medium mb-2 flex items-center">
+                  Gas Estimate
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipContent>
+                        <p className="text-xs">
+                          This is an estimate of the maximum gas fee for this transaction.
+                        </p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                </h4>
+
+                <div className="text-sm space-y-2">
+                  <div className="flex justify-between">
+                    <span className="text-slate-500">Max Gas Fee:</span>
+                    <Badge variant="outline" className="bg-blue-50 text-blue-800 font-mono">
+                      {gasEstimate.totalGasEth} ETH
+                    </Badge>
+                  </div>
                 </div>
               </div>
             )}

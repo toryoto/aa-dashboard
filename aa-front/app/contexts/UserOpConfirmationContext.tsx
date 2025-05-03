@@ -2,8 +2,15 @@ import React, { createContext, useState, useContext, ReactNode } from 'react'
 import { UserOpConfirmationModal, UserOpSelection } from '../components/UserOpConfirmationModal'
 import { Hex } from 'viem'
 
+interface GasEstimateInfo {
+  totalGasEth: string
+  callGasLimit: string
+  verificationGasLimit: string
+  preVerificationGas: string
+}
+
 interface UserOpConfirmationContextType {
-  showConfirmation: (callData: Hex) => Promise<UserOpSelection>
+  showConfirmation: (callData: Hex, gasEstimate?: GasEstimateInfo) => Promise<UserOpSelection>
   completeOperation: (success: boolean) => void
 }
 
@@ -15,6 +22,7 @@ export function UserOpConfirmationProvider({ children }: { children: ReactNode }
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [isProcessing, setIsProcessing] = useState(false)
   const [callData, setCallData] = useState<Hex | null>(null)
+  const [gasEstimate, setGasEstimate] = useState<GasEstimateInfo | undefined>(undefined)
   const [confirmResolve, setConfirmResolve] = useState<((value: UserOpSelection) => void) | null>(
     null
   )
@@ -22,9 +30,13 @@ export function UserOpConfirmationProvider({ children }: { children: ReactNode }
 
   // 確認モーダルを表示し、ユーザーの選択を待つasync関数
   // このメソッドが終了するのはユーザが支払い方法を選択し、handleConfirmが実行され、Promiseが解決された後
-  const showConfirmation = async (callData: Hex): Promise<UserOpSelection> => {
+  const showConfirmation = async (
+    callData: Hex,
+    gasEstimate?: GasEstimateInfo
+  ): Promise<UserOpSelection> => {
     setCallData(callData)
     setIsModalOpen(true)
+    setGasEstimate(gasEstimate)
 
     // 新しいPromiseを作成し、resolve/reject関数を状態として保存
     // ユーザの入力を非同期処理の途中に挟むためにはPromiseを使用する必要がある。（executeCallData内で使用するため）
@@ -76,6 +88,7 @@ export function UserOpConfirmationProvider({ children }: { children: ReactNode }
         onConfirm={handleConfirm}
         isProcessing={isProcessing}
         callData={callData}
+        gasEstimate={gasEstimate}
       />
     </UserOpConfirmationContext.Provider>
   )
