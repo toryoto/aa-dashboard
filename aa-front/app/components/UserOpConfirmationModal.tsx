@@ -7,12 +7,13 @@ import { SimpleAccountABI } from '../abi/simpleAccount'
 import { erc20Abi } from '../abi/erc20'
 import { dexRouterAbi } from '../abi/dexRouter'
 import { wrappedSepolia } from '../abi/wrappedSepolia'
+import { tokenCreationFactoryAbi } from '../abi/tokenCreationFactory'
 import { RadioGroup, RadioGroupItem } from './ui/radio-group'
 import { Label } from './ui/label'
 import { TOKEN_OPTIONS } from '../constants/tokenList'
 import { DAI_ADDRESS } from '../constants/addresses'
 import Image from 'next/image'
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from './ui/tooltip'
+import { Tooltip, TooltipContent, TooltipProvider } from './ui/tooltip'
 import { Badge } from './ui/badge'
 
 // ユーザー選択の型定義
@@ -59,7 +60,13 @@ interface DecodedCallData {
   operations: DecodedOperation[]
 }
 
-const ABIS = [...SimpleAccountABI, ...erc20Abi, ...dexRouterAbi, ...wrappedSepolia]
+const ABIS = [
+  ...SimpleAccountABI,
+  ...erc20Abi,
+  ...dexRouterAbi,
+  ...wrappedSepolia,
+  ...tokenCreationFactoryAbi,
+]
 
 function decodeSingleCallData(callData: Hex): DecodedSingleCallData {
   if (!callData || callData.length < 10) {
@@ -80,7 +87,9 @@ function decodeSingleCallData(callData: Hex): DecodedSingleCallData {
           args: Array.isArray(decoded.args) ? decoded.args : [],
         }
       }
-    } catch {}
+    } catch (error) {
+      console.log(error)
+    }
   }
 
   return {

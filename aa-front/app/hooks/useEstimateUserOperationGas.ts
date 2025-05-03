@@ -34,8 +34,8 @@ export function useEstimateUserOperationGas() {
       // ガス料金の取得
       const feeData = await publicClient.estimateFeesPerGas()
 
-      const maxFeePerGas = feeData.maxFeePerGas || parseGwei('50')
-      const maxPriorityFeePerGas = feeData.maxPriorityFeePerGas || parseGwei('2')
+      const maxFeePerGas = feeData.maxFeePerGas
+      const maxPriorityFeePerGas = feeData.maxPriorityFeePerGas
 
       // ガス値をBigIntに変換
       const callGasLimit = BigInt(gasEstimation?.callGasLimit || userOp.callGasLimit)

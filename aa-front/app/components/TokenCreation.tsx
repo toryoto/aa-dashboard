@@ -12,7 +12,6 @@ import { useAA } from '../hooks/useAA'
 import { publicClient } from '../utils/client'
 import { TokenList } from './TokenList'
 import { useTokenManagement } from '../hooks/useTokenManagement'
-import { toast } from 'sonner'
 import { useUserOperationExecutor } from '../hooks/useUserOpExecutor'
 
 export const TokenCreation = ({ isDeployed }: { isDeployed: boolean }) => {
@@ -26,10 +25,6 @@ export const TokenCreation = ({ isDeployed }: { isDeployed: boolean }) => {
   const { updateTokenBalances } = useTokenManagement(publicClient, aaAddress)
 
   const handleCreateToken = async () => {
-    const toastId = toast.loading('Creating your token...', {
-      description: `${tokenName} (${tokenSymbol})`,
-    })
-
     try {
       const func = encodeFunctionData({
         abi: tokenCreationFactoryAbi,
@@ -44,33 +39,17 @@ export const TokenCreation = ({ isDeployed }: { isDeployed: boolean }) => {
       })
 
       const { receipt } = await executeCallData(callData)
+      console.log(receipt)
 
-      if (receipt.success) {
-        toast.success('Token created successfully', {
-          id: toastId,
-          description: (
-            <div className="space-y-1">
-              <p>Name: {tokenName}</p>
-              <p>Symbol: {tokenSymbol}</p>
-              <p>Supply: {tokenSupply}</p>
-            </div>
-          ),
-        })
+      await updateTokenBalances()
 
-        await updateTokenBalances()
+      setTokenName('')
+      setTokenSymbol('')
+      setTokenSupply('')
 
-        setTokenName('')
-        setTokenSymbol('')
-        setTokenSupply('')
-      } else {
-        throw new Error('Transaction failed')
-      }
+      return receipt
     } catch (error) {
       console.error('Token creation error:', error)
-      toast.error('Failed to create token', {
-        id: toastId,
-        description: error instanceof Error ? error.message : 'Unknown error occurred',
-      })
     }
   }
 
