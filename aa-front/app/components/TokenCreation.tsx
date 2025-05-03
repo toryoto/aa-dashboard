@@ -45,8 +45,6 @@ export const TokenCreation = ({ isDeployed }: { isDeployed: boolean }) => {
         throw new Error('Please fill in all token details.')
       }
 
-      console.log(tokenName, tokenSymbol, parseEther(tokenSupply))
-
       const factoryFuncData = encodeFunctionData({
         abi: tokenCreationFactoryAbi,
         functionName: 'createToken',
@@ -60,7 +58,6 @@ export const TokenCreation = ({ isDeployed }: { isDeployed: boolean }) => {
       })
 
       const executionResult = await executeCallData(callData)
-      console.log('Execution Result:', executionResult)
 
       if (executionResult.success && executionResult.txHash) {
         setResult({

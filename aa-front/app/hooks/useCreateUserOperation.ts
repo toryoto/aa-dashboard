@@ -39,8 +39,8 @@ export function useCreateUserOperation() {
           callGasLimit: toHex(2_500_000),
           verificationGasLimit: toHex(1_000_000),
           preVerificationGas: toHex(200_000),
-          maxFeePerGas: toHex(500_000_000),
-          maxPriorityFeePerGas: toHex(200_000_000),
+          maxFeePerGas: toHex(0),
+          maxPriorityFeePerGas: toHex(0),
           paymasterAndData: '0x',
           signature: '0x',
         }

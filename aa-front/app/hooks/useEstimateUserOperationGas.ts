@@ -17,9 +17,16 @@ export interface GasEstimationResult {
 export function useEstimateUserOperationGas() {
   const estimateUserOperationGas = useCallback(async (userOp: UserOperation) => {
     try {
+      // ガス料金の取得
+      const feeData = await publicClient.estimateFeesPerGas()
+      const maxFeePerGas = feeData.maxFeePerGas
+      const maxPriorityFeePerGas = feeData.maxPriorityFeePerGas
+
       // ダミー署名の設定（シミュレーション用）
       const dummyUserOp = {
         ...userOp,
+        maxFeePerGas: `0x${maxFeePerGas.toString(16)}` as `0x${string}`,
+        maxPriorityFeePerGas: `0x${maxPriorityFeePerGas.toString(16)}` as `0x${string}`,
         signature:
           '0xfffffffffffffffffffffffffffffff0000000000000000000000000000000007aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa1c' as `0x${string}`,
       }
@@ -30,12 +37,6 @@ export function useEstimateUserOperationGas() {
         method: 'eth_estimateUserOperationGas',
         params: [dummyUserOp, ENTRY_POINT_ADDRESS],
       })
-
-      // ガス料金の取得
-      const feeData = await publicClient.estimateFeesPerGas()
-
-      const maxFeePerGas = feeData.maxFeePerGas
-      const maxPriorityFeePerGas = feeData.maxPriorityFeePerGas
 
       // ガス値をBigIntに変換
       const callGasLimit = BigInt(gasEstimation?.callGasLimit || userOp.callGasLimit)

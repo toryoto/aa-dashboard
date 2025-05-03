@@ -87,9 +87,7 @@ function decodeSingleCallData(callData: Hex): DecodedSingleCallData {
           args: Array.isArray(decoded.args) ? decoded.args : [],
         }
       }
-    } catch (error) {
-      console.log(error)
-    }
+    } catch (error) {}
   }
 
   return {

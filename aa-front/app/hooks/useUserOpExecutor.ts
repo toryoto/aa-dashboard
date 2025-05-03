@@ -63,7 +63,6 @@ export function useUserOperationExecutor(aaAddress: Hex) {
           aaAddress,
           callData: executeCallData,
         })
-        console.log(userOp)
         const paymasterAndData = await getPaymasterAndData(userOp)
         userOp.paymasterAndData = paymasterAndData
         const userOpHash = await execute(userOp)
@@ -205,8 +204,6 @@ export function useUserOperationExecutor(aaAddress: Hex) {
             verificationGasLimit: userOpResult.verificationGasLimit,
             preVerificationGas: userOpResult.preVerificationGas,
           }
-
-          console.log('Gas estimate:', gasEstimateInfo)
         } catch (estimateError) {
           console.warn('ガス推定に失敗しました:', estimateError)
           // エラーが発生しても続行（情報なしで）
@@ -226,6 +223,8 @@ export function useUserOperationExecutor(aaAddress: Hex) {
         if (userSelection.paymentOption === 'token' && userSelection.tokenAddress) {
           updatedOptions.tokenAddress = userSelection.tokenAddress
         }
+
+        console.log('userop', userOp)
 
         const result = await performExecution(userOp, updatedOptions)
 
