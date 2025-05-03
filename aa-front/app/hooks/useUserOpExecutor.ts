@@ -1,9 +1,7 @@
 import { useState, useCallback } from 'react'
 import { encodeFunctionData, erc20Abi, Hex, toHex } from 'viem'
-import { bundlerClient, publicClient } from '../utils/client'
-import { ENTRY_POINT_ADDRESS, MULTI_TOKEN_PAYMASTER_ADDRESS } from '../constants/addresses'
-import { entryPointAbi } from '../abi/entryPoint'
-import { UserOperation } from '../lib/userOperationType'
+import { bundlerClient } from '../utils/client'
+import { MULTI_TOKEN_PAYMASTER_ADDRESS } from '../constants/addresses'
 import { usePaymasterData } from './usePaymasterData'
 import { useExecuteUserOperation } from './useExecuteUserOperation'
 import { useUserOpConfirmation } from '../contexts/UserOpConfirmationContext'
@@ -121,6 +119,7 @@ export function useUserOperationExecutor(aaAddress: Hex) {
           initCode,
         })
 
+        // gas代の推定を取得
         try {
           userOp = await estimateUserOperationGas(userOp)
           console.log(userOp)
@@ -195,6 +194,7 @@ export function useUserOperationExecutor(aaAddress: Hex) {
       getMultiTokenPaymasterAndData,
       checkTokenAllowance,
       approveTokenForPaymaster,
+      createUserOperation,
       selectedToken,
     ]
   )
