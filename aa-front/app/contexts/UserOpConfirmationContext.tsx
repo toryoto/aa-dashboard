@@ -21,6 +21,7 @@ export function UserOpConfirmationProvider({ children }: { children: ReactNode }
   const [confirmReject, setConfirmReject] = useState<((reason?: any) => void) | null>(null)
 
   // 確認モーダルを表示し、ユーザーの選択を待つasync関数
+  // このメソッドが終了するのはユーザが支払い方法を選択し、handleConfirmが実行され、Promiseが解決された後
   const showConfirmation = async (callData: Hex): Promise<UserOpSelection> => {
     setCallData(callData)
     setIsModalOpen(true)
@@ -29,6 +30,7 @@ export function UserOpConfirmationProvider({ children }: { children: ReactNode }
     // ユーザの入力を非同期処理の途中に挟むためにはPromiseを使用する必要がある。（executeCallData内で使用するため）
     // resolveやrejectを直接呼び出すのではなく、後で引数を渡して呼び出すための関数を設定する
     return new Promise<UserOpSelection>((resolve, reject) => {
+      // resolveやrejectは、Promiseの標準的な関数で、引数を1つ受け取ることができる
       setConfirmResolve(() => resolve)
       setConfirmReject(() => reject)
     })
