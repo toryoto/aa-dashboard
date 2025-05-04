@@ -286,7 +286,7 @@ export default function AAWallet() {
           </TabsContent>
 
           <TabsContent value="wrap" className="space-y-4 mt-6">
-            <WrapToken isDeployed={isDeployed} />
+            <WrapToken isDeployed={isDeployed} onWrapComplete={fetchBalance} />
           </TabsContent>
 
           <TabsContent value="create" className="space-y-4 mt-6">

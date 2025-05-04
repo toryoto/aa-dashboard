@@ -20,7 +20,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from './ui/t
 import { Badge } from './ui/badge'
 import { Alert, AlertDescription } from './ui/alert'
 
-export const WrapToken = ({ isDeployed }: { isDeployed: boolean }) => {
+export const WrapToken = ({ isDeployed, onWrapComplete }: { isDeployed: boolean, onWrapComplete?: () => void }) => {
   const [wrapAmount, setWrapAmount] = useState('')
   const [unwrapAmount, setUnwrapAmount] = useState('')
   const [balance, setBalance] = useState('0')
@@ -70,6 +70,8 @@ export const WrapToken = ({ isDeployed }: { isDeployed: boolean }) => {
       } else {
         throw new Error(result.error)
       }
+
+      if (onWrapComplete) onWrapComplete()
     } catch (error) {
       setTxStatus({
         status: 'error',
@@ -103,7 +105,9 @@ export const WrapToken = ({ isDeployed }: { isDeployed: boolean }) => {
           message: `Successfully unwrapped ${unwrapAmount} WSEP to ETH`,
         })
         setUnwrapAmount('')
+        
         await updateBalance()
+        if (onWrapComplete) onWrapComplete()
       } else {
         throw new Error(result.error)
       }

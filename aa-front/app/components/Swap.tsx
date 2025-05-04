@@ -30,7 +30,7 @@ interface SwapProps {
 
 export const Swap: React.FC<SwapProps> = ({ isDeployed, onSwapComplete }) => {
   const { aaAddress } = useAA()
-  const { balance: ethBalance, fetchBalance } = useFetchAABalance(aaAddress)
+  const { balance: ethBalance } = useFetchAABalance(aaAddress)
 
   const { swap, getSwapEstimate, isSupportedPair, getTokenBalance, getTokenSymbol } =
     useSwap(aaAddress)
@@ -227,8 +227,6 @@ export const Swap: React.FC<SwapProps> = ({ isDeployed, onSwapComplete }) => {
         setFromAmount('')
         setToAmount('')
 
-        // Refresh balances
-        fetchBalance()
         if (onSwapComplete) onSwapComplete()
       } else {
         throw new Error(swapResult.error || 'Swap failed')
