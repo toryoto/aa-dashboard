@@ -1,8 +1,9 @@
 import express from 'express'
 import { saveUserOpController } from '../controllers/saveUserOpController'
+import asyncHandler from 'express-async-handler'
 
-const route = express.Router()
+const saveUserOpRoute = express.Router()
 
-route.post('/saveUserOp', saveUserOpController)
+saveUserOpRoute.post('/saveUserOp', asyncHandler(saveUserOpController))
 
-export default route
+export default saveUserOpRoute

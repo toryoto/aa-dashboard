@@ -2,6 +2,7 @@ import express from 'express'
 import paymasterRoutes from './routes/paymaster'
 import cors from 'cors'
 import faucetRoutes from './routes/faucet'
+import saveUserOpRoute from './routes/saveUserOp'
 
 const app = express()
 
@@ -24,7 +25,9 @@ app.use(cors(corsOptions))
 
 app.use(express.json())
 
-app.use('/api', paymasterRoutes, faucetRoutes)
+app.use('/api', paymasterRoutes)
+app.use('/api', faucetRoutes)
+app.use('/api', saveUserOpRoute)
 
 app.use((err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {
   console.error(err.stack)
