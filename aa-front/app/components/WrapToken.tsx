@@ -20,7 +20,13 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from './ui/t
 import { Badge } from './ui/badge'
 import { Alert, AlertDescription } from './ui/alert'
 
-export const WrapToken = ({ isDeployed, onWrapComplete }: { isDeployed: boolean, onWrapComplete?: () => void }) => {
+export const WrapToken = ({
+  isDeployed,
+  onWrapComplete,
+}: {
+  isDeployed: boolean
+  onWrapComplete?: () => void
+}) => {
   const [wrapAmount, setWrapAmount] = useState('')
   const [unwrapAmount, setUnwrapAmount] = useState('')
   const [balance, setBalance] = useState('0')
@@ -105,7 +111,7 @@ export const WrapToken = ({ isDeployed, onWrapComplete }: { isDeployed: boolean,
           message: `Successfully unwrapped ${unwrapAmount} WSEP to ETH`,
         })
         setUnwrapAmount('')
-        
+
         await updateBalance()
         if (onWrapComplete) onWrapComplete()
       } else {

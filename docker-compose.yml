@@ -4,11 +4,6 @@ services:
       context: ./aa-front
       dockerfile: Dockerfile
       target: dev
-      args:
-        - NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID=${NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID}
-        - NEXT_PUBLIC_ALCHEMY_API_KEY=${NEXT_PUBLIC_ALCHEMY_API_KEY}
-        - NEXT_PUBLIC_PIMLICO_API_KEY=${NEXT_PUBLIC_PIMLICO_API_KEY}
-        - NEXT_PUBLIC_WEB3AUTH_CLIENT_ID=${NEXT_PUBLIC_WEB3AUTH_CLIENT_ID}
     ports:
       - '3000:3000'
     environment:
