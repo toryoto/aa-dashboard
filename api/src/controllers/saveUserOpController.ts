@@ -19,7 +19,6 @@ export const saveUserOpController = async (req: Request, res: Response) => {
       initCode,
     } = req.body
 
-    // UserOpテーブルの必須フィールドの検証
     if (!userOpHash || !sender || !transactionHash) {
       res.status(400).json({
         success: false,
@@ -28,25 +27,15 @@ export const saveUserOpController = async (req: Request, res: Response) => {
       return
     }
 
-    // すでにUseropを保存しているかのチェック
-    const existingUserOp = await prisma.userOperation.findUnique({
-      where: { userOpHash },
-    })
+    // 16進数の文字列（0xで始まる）をBigIntに変換
+    const parsedNonce = nonce.startsWith('0x') ? BigInt(nonce) : BigInt(nonce)
+    console.log('nonce', parsedNonce)
 
-    if (existingUserOp) {
-      res.status(409).json({
-        success: false,
-        message: 'UserOperation with this hash already exists',
-      })
-      return 
-    }
-
-    // DBに保存
     const userOperation = await prisma.userOperation.create({
       data: {
         userOpHash,
         sender,
-        nonce: BigInt(nonce),
+        nonce: parsedNonce,
         success,
         transactionHash,
         blockNumber: BigInt(blockNumber),
@@ -58,12 +47,25 @@ export const saveUserOpController = async (req: Request, res: Response) => {
       },
     })
 
+    // json.stringfy()はBigIntをサポートしていないからBitIntをstringにして返す
+    const responseData = {
+      id: userOperation.id,
+      userOpHash: userOperation.userOpHash,
+      sender: userOperation.sender,
+      nonce: userOperation.nonce.toString(),
+      success: userOperation.success,
+      transactionHash: userOperation.transactionHash,
+      blockNumber: userOperation.blockNumber.toString(),
+      blockTimestamp: userOperation.blockTimestamp.toString(),
+      paymentMethod: userOperation.paymentMethod,
+    }
+
     res.status(201).json({
       success: true,
       message: 'UserOperation saved successfully',
-      data: userOperation,
+      data: responseData,
     })
-    return 
+    return
   } catch (error) {
     console.error('Error saving UserOperation:', error)
     res.status(500).json({
@@ -71,6 +73,6 @@ export const saveUserOpController = async (req: Request, res: Response) => {
       message: 'Internal server error',
       error: error instanceof Error ? error.message : 'Unknown error',
     })
-    return 
+    return
   }
 }

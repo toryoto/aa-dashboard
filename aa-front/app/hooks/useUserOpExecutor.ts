@@ -231,6 +231,32 @@ export function useUserOperationExecutor(aaAddress: Hex) {
         // 処理完了を通知（モーダルを閉じる）
         completeOperation(result.success)
 
+        if (result.success && result.userOpHash) {
+          try {
+            await fetch('/api/saveUserOp', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({
+                userOpHash: result.userOpHash,
+                sender: aaAddress,
+                nonce: userOp.nonce,
+                success: result.success,
+                transactionHash: result.txHash,
+                blockNumber: result.receipt?.blockNumber || 0,
+                blockTimestamp: Math.floor(Date.now() / 1000),
+                calldata: callData,
+                paymentMethod: userSelection.paymentOption,
+                initCode: options.initCode || '0x',
+              }),
+            })
+          } catch (saveError) {
+            console.warn('Failed to save UserOperation:', saveError)
+            // 保存が失敗してもユーザー操作には影響しないため、エラーは無視する
+          }
+        }
+
         return result
       } catch (error) {
         console.error('UserOperation実行中にエラーが発生しました:', error)
