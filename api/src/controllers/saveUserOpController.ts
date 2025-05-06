@@ -29,7 +29,6 @@ export const saveUserOpController = async (req: Request, res: Response) => {
 
     // 16進数の文字列（0xで始まる）をBigIntに変換
     const parsedNonce = nonce.startsWith('0x') ? BigInt(nonce) : BigInt(nonce)
-    console.log('nonce', parsedNonce)
 
     const userOperation = await prisma.userOperation.create({
       data: {
