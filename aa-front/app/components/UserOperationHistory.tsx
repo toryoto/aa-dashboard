@@ -2,18 +2,12 @@ import React, { useState, useEffect } from 'react'
 import {
   Clock,
   Activity,
-  ArrowUpRight,
-  Info,
-  Filter,
-  Search,
   ChevronRight,
   ChevronLeft,
   X,
   ExternalLink,
 } from 'lucide-react'
-import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from './ui/card'
 import { Button } from './ui/button'
-import { Input } from './ui/input'
 import { Badge } from './ui/badge'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from './ui/dialog'
 import { Hex } from 'viem'
@@ -153,18 +147,6 @@ const UserOperationHistory: React.FC<UserOperationHistoryProps> = ({ isVisible, 
       </div>
 
       <div className="p-4">
-        {/* 将来的に検索やフィルタを追加する場合
-        <div className="flex items-center gap-2 mb-4">
-          <div className="relative w-full">
-            <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 h-4 w-4 text-slate-400" />
-            <Input placeholder="Search operations..." className="pl-8" />
-          </div>
-          <Button variant="outline" size="icon" className="h-9 w-9">
-            <Filter className="h-4 w-4" />
-          </Button>
-        </div>
-        */}
-
         {loading ? (
           <div className="flex justify-center items-center p-8">
             <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary"></div>
@@ -176,14 +158,14 @@ const UserOperationHistory: React.FC<UserOperationHistoryProps> = ({ isVisible, 
         ) : userOps.length === 0 ? (
           <div className="text-center p-8 text-slate-500">
             <Clock className="h-8 w-8 mx-auto mb-2 text-slate-400" />
-            <p>UserOperationの履歴がありません</p>
+            <p>No UserOperation history</p>
           </div>
         ) : (
           <div className="space-y-3">
             {userOps.map(op => (
               <div
                 key={op.userOpHash}
-                className={`p-3 rounded-lg border ${op.success ? 'border-green-100 bg-green-50' : 'border-red-100 bg-red-50'} cursor-pointer hover:shadow-md transition-shadow`}
+                className={'p-3 rounded-lg border cursor-pointer hover:shadow-md transition-shadow'}
                 onClick={() => handleOpClick(op)}
               >
                 <div className="flex justify-between items-start mb-1">
@@ -243,7 +225,7 @@ const UserOperationHistory: React.FC<UserOperationHistoryProps> = ({ isVisible, 
           {selectedOp && (
             <div className="space-y-4 mt-4">
               <div className="grid grid-cols-4 gap-4">
-                <div className="col-span-1 text-sm font-medium text-slate-500">ステータス</div>
+                <div className="col-span-1 text-sm font-medium text-slate-500">Status</div>
                 <div className="col-span-3">
                   <Badge
                     variant="outline"
@@ -257,16 +239,16 @@ const UserOperationHistory: React.FC<UserOperationHistoryProps> = ({ isVisible, 
                   </Badge>
                 </div>
 
-                <div className="col-span-1 text-sm font-medium text-slate-500">日時</div>
+                <div className="col-span-1 text-sm font-medium text-slate-500">Time</div>
                 <div className="col-span-3 text-sm">{formatDate(selectedOp.blockTimestamp)}</div>
 
-                <div className="col-span-1 text-sm font-medium text-slate-500">送信元</div>
+                <div className="col-span-1 text-sm font-medium text-slate-500">Sender</div>
                 <div className="col-span-3 text-sm font-mono break-all">{selectedOp.sender}</div>
 
                 <div className="col-span-1 text-sm font-medium text-slate-500">Nonce</div>
                 <div className="col-span-3 text-sm">{selectedOp.nonce}</div>
 
-                <div className="col-span-1 text-sm font-medium text-slate-500">支払い方法</div>
+                <div className="col-span-1 text-sm font-medium text-slate-500">Patment Method</div>
                 <div className="col-span-3">{getPaymentMethodBadge(selectedOp.paymentMethod)}</div>
 
                 <div className="col-span-1 text-sm font-medium text-slate-500">Tx Hash</div>
@@ -324,7 +306,7 @@ const UserOperationHistory: React.FC<UserOperationHistoryProps> = ({ isVisible, 
                                     {op.args && op.args.length > 0 && (
                                       <details className="mt-1">
                                         <summary className="cursor-pointer text-xs text-primary">
-                                          引数を表示
+                                          View arguments
                                         </summary>
                                         <div className="mt-1 text-xs font-mono bg-slate-50 p-2 rounded overflow-x-auto max-h-32 overflow-y-auto">
                                           <pre className="whitespace-pre-wrap">
@@ -359,10 +341,9 @@ const UserOperationHistory: React.FC<UserOperationHistoryProps> = ({ isVisible, 
                 </div>
               )}
 
-              {/* エラーがある場合は表示 */}
               {selectedOp.error && (
                 <div className="mt-4 border-t pt-4">
-                  <h4 className="text-sm font-medium mb-2 text-red-600">エラー</h4>
+                  <h4 className="text-sm font-medium mb-2 text-red-600">Error</h4>
                   <div className="bg-red-50 p-3 rounded-md border border-red-200 text-sm">
                     {selectedOp.error}
                   </div>
