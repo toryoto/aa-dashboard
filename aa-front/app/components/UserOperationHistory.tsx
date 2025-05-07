@@ -1,18 +1,12 @@
 import React, { useState, useEffect } from 'react'
-import {
-  Clock,
-  Activity,
-  ChevronRight,
-  ChevronLeft,
-  X,
-  ExternalLink,
-} from 'lucide-react'
+import { Clock, Activity, ChevronRight, ChevronLeft, X, ExternalLink } from 'lucide-react'
 import { Button } from './ui/button'
 import { Badge } from './ui/badge'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from './ui/dialog'
 import { Hex } from 'viem'
 import { useAA } from '../hooks/useAA'
 import { decodeCallData } from '../utils/decodeCallData'
+import { formatDate, shortenHex } from '../utils/format'
 
 interface UserOperation {
   id: number
@@ -32,22 +26,6 @@ interface UserOperation {
 interface UserOperationHistoryProps {
   isVisible: boolean
   onClose: () => void
-}
-
-const formatDate = (timestamp: string): string => {
-  const date = new Date(Number(timestamp) * 1000)
-  return new Intl.DateTimeFormat('ja-JP', {
-    year: 'numeric',
-    month: '2-digit',
-    day: '2-digit',
-    hour: '2-digit',
-    minute: '2-digit',
-  }).format(date)
-}
-
-const shortenHash = (hash: string): string => {
-  if (!hash) return ''
-  return `${hash.slice(0, 6)}...${hash.slice(-4)}`
 }
 
 const UserOperationHistory: React.FC<UserOperationHistoryProps> = ({ isVisible, onClose }) => {
@@ -139,7 +117,7 @@ const UserOperationHistory: React.FC<UserOperationHistoryProps> = ({ isVisible, 
       <div className="sticky top-0 bg-white p-4 border-b border-slate-200 flex justify-between items-center z-20">
         <div className="flex items-center gap-2">
           <Activity className="h-5 w-5 text-primary" />
-          <h2 className="text-lg font-semibold">履歴一覧</h2>
+          <h2 className="text-lg font-semibold">UserOp History</h2>
         </div>
         <Button variant="ghost" size="sm" onClick={onClose} className="rounded-full h-8 w-8 p-0">
           <X className="h-4 w-4" />
@@ -178,13 +156,13 @@ const UserOperationHistory: React.FC<UserOperationHistoryProps> = ({ isVisible, 
                 </div>
                 <div className="flex items-center justify-between">
                   <div className="text-xs font-mono text-slate-500">
-                    {shortenHash(op.transactionHash)}
+                    {shortenHex(op.transactionHash)}
                   </div>
                   <Badge
                     variant="outline"
                     className={op.success ? 'text-green-600' : 'text-red-600'}
                   >
-                    {op.success ? '成功' : '失敗'}
+                    {op.success ? 'Success' : 'Failed'}
                   </Badge>
                 </div>
               </div>
@@ -235,7 +213,7 @@ const UserOperationHistory: React.FC<UserOperationHistoryProps> = ({ isVisible, 
                         : 'bg-red-50 text-red-700 border-red-200'
                     }
                   >
-                    {selectedOp.success ? '成功' : '失敗'}
+                    {selectedOp.success ? 'Success' : 'Failed'}
                   </Badge>
                 </div>
 

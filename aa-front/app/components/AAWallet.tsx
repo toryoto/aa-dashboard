@@ -29,13 +29,14 @@ import { Hex } from 'viem'
 import { Swap } from './Swap'
 import { Faucet } from './Faucet'
 import UserOperationHistory from './UserOperationHistory'
+import { shortenHex } from '../utils/format'
 
 export default function AAWallet() {
   const { address, isConnected } = useAccount()
   const { aaAddress, isDeployed, loading, deployAccount } = useAA()
   const [deploying, setDeploying] = useState(false)
   const { balance, isBalanceLoading, fetchBalance } = useFetchAABalance(aaAddress)
-  const [showSidebar, setShowSidebar] = useState(false)
+  const [showSidebar, setShowSidebar] = useState(true)
 
   const handleDeploy = async () => {
     setDeploying(true)
@@ -47,10 +48,6 @@ export default function AAWallet() {
     } finally {
       setDeploying(false)
     }
-  }
-
-  const shortenAddress = (addr: Hex) => {
-    return addr ? `${addr.slice(0, 6)}...${addr.slice(-4)}` : ''
   }
 
   if (!isConnected) {
@@ -118,7 +115,7 @@ export default function AAWallet() {
                 <Label className="text-xs font-medium text-slate-500 mb-1 block">EOA Address</Label>
                 <div className="flex items-center gap-2">
                   <span className="text-sm font-mono break-all text-slate-800">
-                    {address ? shortenAddress(address) : ''}
+                    {address ? shortenHex(address) : ''}
                   </span>
                   <Button
                     variant="ghost"
@@ -166,7 +163,7 @@ export default function AAWallet() {
                 ) : aaAddress && aaAddress !== '0x' ? (
                   <div className="flex items-center gap-2">
                     <span className="text-sm font-mono break-all text-slate-800">
-                      {shortenAddress(aaAddress)}
+                      {shortenHex(aaAddress)}
                     </span>
                     <Button
                       variant="ghost"
