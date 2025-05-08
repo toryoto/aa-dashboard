@@ -19,6 +19,7 @@ import { Button } from './ui/button'
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from './ui/tooltip'
 import { Badge } from './ui/badge'
 import { Alert, AlertDescription } from './ui/alert'
+import { useUserOp } from '../contexts/FetchUserOpContext'
 
 export const WrapToken = ({
   isDeployed,
@@ -38,6 +39,8 @@ export const WrapToken = ({
   const { aaAddress } = useAA()
 
   const { deposit, withdraw, balanceOf } = useWrapSepolia(aaAddress)
+
+  const { fetchUserOps } = useUserOp()
 
   const updateBalance = useCallback(async () => {
     if (isDeployed && aaAddress) {
@@ -72,6 +75,8 @@ export const WrapToken = ({
           message: `Successfully wrapped ${wrapAmount} ETH to WSEP`,
         })
         setWrapAmount('')
+        
+        await fetchUserOps()
         await updateBalance()
       } else {
         throw new Error(result.error)
@@ -112,6 +117,7 @@ export const WrapToken = ({
         })
         setUnwrapAmount('')
 
+        await fetchUserOps()
         await updateBalance()
         if (onWrapComplete) onWrapComplete()
       } else {

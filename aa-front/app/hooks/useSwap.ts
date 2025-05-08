@@ -13,6 +13,7 @@ import {
 import { erc20Abi } from '../abi/erc20'
 import { dexRouterAbi } from '../abi/dexRouter'
 import { wrappedSepolia } from '../abi/wrappedSepolia'
+import { useUserOp } from '../contexts/FetchUserOpContext'
 
 interface SwapOptions {
   fromToken: string // トークンのアドレス
@@ -39,6 +40,7 @@ const TOKEN_DECIMALS: Record<string, number> = {
 
 export function useSwap(aaAddress: Hex) {
   const { executeCallData } = useUserOperationExecutor(aaAddress)
+  const { fetchUserOps } = useUserOp()
 
   const getTokenDecimals = (tokenAddress: string): number => {
     return TOKEN_DECIMALS[tokenAddress]
