@@ -75,7 +75,7 @@ export const WrapToken = ({
           message: `Successfully wrapped ${wrapAmount} ETH to WSEP`,
         })
         setWrapAmount('')
-        
+
         await fetchUserOps()
         await updateBalance()
       } else {

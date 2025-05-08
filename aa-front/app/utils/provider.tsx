@@ -53,9 +53,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
         <RainbowKitProvider modalSize="compact">
           <UserOpConfirmationProvider>
             <AAProvider>
-              <UserOpProvider>
-                {children}
-              </UserOpProvider>
+              <UserOpProvider>{children}</UserOpProvider>
             </AAProvider>
           </UserOpConfirmationProvider>
         </RainbowKitProvider>

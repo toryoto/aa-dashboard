@@ -72,7 +72,7 @@ export const TokenCreation = ({ isDeployed }: { isDeployed: boolean }) => {
         setTokenSymbol('')
         setTokenSupply('')
         await updateTokenBalances()
-        
+
         await fetchUserOps()
       } else {
         setResult({

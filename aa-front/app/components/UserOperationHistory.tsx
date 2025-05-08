@@ -18,7 +18,7 @@ const UserOperationHistory: React.FC<UserOperationHistoryProps> = ({ isVisible, 
   const { aaAddress } = useAA()
   const [selectedOp, setSelectedOp] = useState<any | null>(null)
   const [showDetails, setShowDetails] = useState<boolean>(false)
-  
+
   const { userOps, loading, error, fetchUserOps } = useUserOp()
 
   useEffect(() => {
@@ -145,146 +145,150 @@ const UserOperationHistory: React.FC<UserOperationHistoryProps> = ({ isVisible, 
         </div>
       </div> */}
 
-      <Dialog open={showDetails} onOpenChange={setShowDetails}>
-        <DialogContent className="max-w-xl">
-          <DialogHeader>
-            <DialogTitle>UserOperation Detail</DialogTitle>
-            <DialogDescription>
-              {selectedOp && getOperationName(selectedOp.calldata)}
-            </DialogDescription>
-          </DialogHeader>
+        <Dialog open={showDetails} onOpenChange={setShowDetails}>
+          <DialogContent className="max-w-xl">
+            <DialogHeader>
+              <DialogTitle>UserOperation Detail</DialogTitle>
+              <DialogDescription>
+                {selectedOp && getOperationName(selectedOp.calldata)}
+              </DialogDescription>
+            </DialogHeader>
 
-          {selectedOp && (
-            <div className="space-y-4 mt-4">
-              <div className="grid grid-cols-4 gap-4">
-                <div className="col-span-1 text-sm font-medium text-slate-500">Status</div>
-                <div className="col-span-3">
-                  <Badge
-                    variant="outline"
-                    className={
-                      selectedOp.success
-                        ? 'bg-green-50 text-green-700 border-green-200'
-                        : 'bg-red-50 text-red-700 border-red-200'
-                    }
-                  >
-                    {selectedOp.success ? 'Success' : 'Failed'}
-                  </Badge>
+            {selectedOp && (
+              <div className="space-y-4 mt-4">
+                <div className="grid grid-cols-4 gap-4">
+                  <div className="col-span-1 text-sm font-medium text-slate-500">Status</div>
+                  <div className="col-span-3">
+                    <Badge
+                      variant="outline"
+                      className={
+                        selectedOp.success
+                          ? 'bg-green-50 text-green-700 border-green-200'
+                          : 'bg-red-50 text-red-700 border-red-200'
+                      }
+                    >
+                      {selectedOp.success ? 'Success' : 'Failed'}
+                    </Badge>
+                  </div>
+
+                  <div className="col-span-1 text-sm font-medium text-slate-500">Time</div>
+                  <div className="col-span-3 text-sm">{formatDate(selectedOp.blockTimestamp)}</div>
+
+                  <div className="col-span-1 text-sm font-medium text-slate-500">Sender</div>
+                  <div className="col-span-3 text-sm font-mono break-all">{selectedOp.sender}</div>
+
+                  <div className="col-span-1 text-sm font-medium text-slate-500">Nonce</div>
+                  <div className="col-span-3 text-sm">{selectedOp.nonce}</div>
+
+                  <div className="col-span-1 text-sm font-medium text-slate-500">
+                    Patment Method
+                  </div>
+                  <div className="col-span-3">
+                    {getPaymentMethodBadge(selectedOp.paymentMethod)}
+                  </div>
+
+                  <div className="col-span-1 text-sm font-medium text-slate-500">Tx Hash</div>
+                  <div className="col-span-3 text-sm font-mono break-all">
+                    <a
+                      href={`https://sepolia.etherscan.io/tx/${selectedOp.transactionHash}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center gap-1 text-primary hover:underline"
+                    >
+                      {selectedOp.transactionHash}
+                      <ExternalLink className="h-3 w-3" />
+                    </a>
+                  </div>
+
+                  <div className="col-span-1 text-sm font-medium text-slate-500">UserOp Hash</div>
+                  <div className="col-span-3 text-sm font-mono break-all">
+                    {selectedOp.userOpHash}
+                  </div>
                 </div>
 
-                <div className="col-span-1 text-sm font-medium text-slate-500">Time</div>
-                <div className="col-span-3 text-sm">{formatDate(selectedOp.blockTimestamp)}</div>
+                {selectedOp.calldata && (
+                  <div className="mt-4 border-t pt-4">
+                    <h4 className="text-sm font-medium mb-2">UserOperation</h4>
+                    <div className="bg-slate-50 p-3 rounded-md border border-slate-200 text-sm">
+                      {(() => {
+                        try {
+                          const decoded = decodeCallData(selectedOp.calldata as Hex)
 
-                <div className="col-span-1 text-sm font-medium text-slate-500">Sender</div>
-                <div className="col-span-3 text-sm font-mono break-all">{selectedOp.sender}</div>
+                          return (
+                            <div>
+                              <p className="font-medium">{decoded.functionName}</p>
 
-                <div className="col-span-1 text-sm font-medium text-slate-500">Nonce</div>
-                <div className="col-span-3 text-sm">{selectedOp.nonce}</div>
-
-                <div className="col-span-1 text-sm font-medium text-slate-500">Patment Method</div>
-                <div className="col-span-3">{getPaymentMethodBadge(selectedOp.paymentMethod)}</div>
-
-                <div className="col-span-1 text-sm font-medium text-slate-500">Tx Hash</div>
-                <div className="col-span-3 text-sm font-mono break-all">
-                  <a
-                    href={`https://sepolia.etherscan.io/tx/${selectedOp.transactionHash}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex items-center gap-1 text-primary hover:underline"
-                  >
-                    {selectedOp.transactionHash}
-                    <ExternalLink className="h-3 w-3" />
-                  </a>
-                </div>
-
-                <div className="col-span-1 text-sm font-medium text-slate-500">UserOp Hash</div>
-                <div className="col-span-3 text-sm font-mono break-all">
-                  {selectedOp.userOpHash}
-                </div>
-              </div>
-
-              {selectedOp.calldata && (
-                <div className="mt-4 border-t pt-4">
-                  <h4 className="text-sm font-medium mb-2">UserOperation</h4>
-                  <div className="bg-slate-50 p-3 rounded-md border border-slate-200 text-sm">
-                    {(() => {
-                      try {
-                        const decoded = decodeCallData(selectedOp.calldata as Hex)
-
-                        return (
-                          <div>
-                            <p className="font-medium">{decoded.functionName}</p>
-
-                            {decoded.operations && decoded.operations.length > 0 && (
-                              <div className="mt-2 space-y-2">
-                                {decoded.operations.map((op, index) => (
-                                  <div
-                                    key={index}
-                                    className="bg-white p-2 rounded border border-slate-200"
-                                  >
-                                    <div className="flex items-center justify-between">
-                                      <span className="font-medium">{op.functionName}</span>
-                                      {op.value && op.value > BigInt(0) && (
-                                        <Badge variant="outline" className="bg-blue-50">
-                                          {op.value.toString()} Wei
-                                        </Badge>
+                              {decoded.operations && decoded.operations.length > 0 && (
+                                <div className="mt-2 space-y-2">
+                                  {decoded.operations.map((op, index) => (
+                                    <div
+                                      key={index}
+                                      className="bg-white p-2 rounded border border-slate-200"
+                                    >
+                                      <div className="flex items-center justify-between">
+                                        <span className="font-medium">{op.functionName}</span>
+                                        {op.value && op.value > BigInt(0) && (
+                                          <Badge variant="outline" className="bg-blue-50">
+                                            {op.value.toString()} Wei
+                                          </Badge>
+                                        )}
+                                      </div>
+                                      {op.contractAddress && (
+                                        <div className="text-xs mt-1">
+                                          <span className="text-slate-500">Contract: </span>
+                                          <span className="font-mono">{op.contractAddress}</span>
+                                        </div>
+                                      )}
+                                      {op.args && op.args.length > 0 && (
+                                        <details className="mt-1">
+                                          <summary className="cursor-pointer text-xs text-primary">
+                                            View arguments
+                                          </summary>
+                                          <div className="mt-1 text-xs font-mono bg-slate-50 p-2 rounded overflow-x-auto max-h-32 overflow-y-auto">
+                                            <pre className="whitespace-pre-wrap">
+                                              {JSON.stringify(
+                                                op.args,
+                                                (_, value) =>
+                                                  typeof value === 'bigint'
+                                                    ? value.toString()
+                                                    : value,
+                                                2
+                                              )}
+                                            </pre>
+                                          </div>
+                                        </details>
                                       )}
                                     </div>
-                                    {op.contractAddress && (
-                                      <div className="text-xs mt-1">
-                                        <span className="text-slate-500">Contract: </span>
-                                        <span className="font-mono">{op.contractAddress}</span>
-                                      </div>
-                                    )}
-                                    {op.args && op.args.length > 0 && (
-                                      <details className="mt-1">
-                                        <summary className="cursor-pointer text-xs text-primary">
-                                          View arguments
-                                        </summary>
-                                        <div className="mt-1 text-xs font-mono bg-slate-50 p-2 rounded overflow-x-auto max-h-32 overflow-y-auto">
-                                          <pre className="whitespace-pre-wrap">
-                                            {JSON.stringify(
-                                              op.args,
-                                              (_, value) =>
-                                                typeof value === 'bigint'
-                                                  ? value.toString()
-                                                  : value,
-                                              2
-                                            )}
-                                          </pre>
-                                        </div>
-                                      </details>
-                                    )}
-                                  </div>
-                                ))}
-                              </div>
-                            )}
-                          </div>
-                        )
-                      } catch (err) {
-                        console.error('Error rendering decoded calldata:', err)
-                        return (
-                          <p className="text-red-500">
-                            Decode Error: {err instanceof Error ? err.message : 'Unknown error'}
-                          </p>
-                        )
-                      }
-                    })()}
+                                  ))}
+                                </div>
+                              )}
+                            </div>
+                          )
+                        } catch (err) {
+                          console.error('Error rendering decoded calldata:', err)
+                          return (
+                            <p className="text-red-500">
+                              Decode Error: {err instanceof Error ? err.message : 'Unknown error'}
+                            </p>
+                          )
+                        }
+                      })()}
+                    </div>
                   </div>
-                </div>
-              )}
+                )}
 
-              {selectedOp.error && (
-                <div className="mt-4 border-t pt-4">
-                  <h4 className="text-sm font-medium mb-2 text-red-600">Error</h4>
-                  <div className="bg-red-50 p-3 rounded-md border border-red-200 text-sm">
-                    {selectedOp.error}
+                {selectedOp.error && (
+                  <div className="mt-4 border-t pt-4">
+                    <h4 className="text-sm font-medium mb-2 text-red-600">Error</h4>
+                    <div className="bg-red-50 p-3 rounded-md border border-red-200 text-sm">
+                      {selectedOp.error}
+                    </div>
                   </div>
-                </div>
-              )}
-            </div>
-          )}
-        </DialogContent>
-      </Dialog>
+                )}
+              </div>
+            )}
+          </DialogContent>
+        </Dialog>
       </div>
     </aside>
   )
