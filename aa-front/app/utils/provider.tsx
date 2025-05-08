@@ -8,6 +8,7 @@ import { AAProvider } from '../contexts/AAContext'
 import { rainbowWeb3AuthConnector } from '../config/rainbowWeb3AuthConnector'
 import { web3AuthConfig } from '../config/web3AuthConfig'
 import { UserOpConfirmationProvider } from '../contexts/UserOpConfirmationContext'
+import { UserOpProvider } from '../contexts/FetchUserOpContext'
 
 const projectId = process.env.NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID || ''
 
@@ -51,7 +52,9 @@ export function Providers({ children }: { children: React.ReactNode }) {
       <WagmiProvider config={config}>
         <RainbowKitProvider modalSize="compact">
           <UserOpConfirmationProvider>
-            <AAProvider>{children}</AAProvider>
+            <AAProvider>
+              <UserOpProvider>{children}</UserOpProvider>
+            </AAProvider>
           </UserOpConfirmationProvider>
         </RainbowKitProvider>
       </WagmiProvider>

@@ -20,6 +20,7 @@ import { Alert, AlertDescription } from './ui/alert'
 import { Badge } from './ui/badge'
 import { Hex, PublicClient } from 'viem'
 import { TokenInfo, useTokenManagement } from '../hooks/useTokenManagement'
+import { shortenHex } from '../utils/format'
 
 interface TokenListProps {
   aaAddress: Hex
@@ -73,7 +74,7 @@ export const TokenList: React.FC<TokenListProps> = ({ aaAddress, publicClient, i
 
       setTxStatus({
         status: 'success',
-        message: `Successfully sent ${amount} ${selectedTokenInfo?.symbol || ''} to ${shortenAddress(recipient)}`,
+        message: `Successfully sent ${amount} ${selectedTokenInfo?.symbol || ''} to ${shortenHex(recipient)}`,
       })
 
       await updateTokenBalances()
@@ -91,10 +92,6 @@ export const TokenList: React.FC<TokenListProps> = ({ aaAddress, publicClient, i
       setSending(false)
     }
   }
-
-  const shortenAddress = useCallback((address: string) => {
-    return `${address.slice(0, 6)}...${address.slice(-4)}`
-  }, [])
 
   const selectToken = (address: string) => {
     setSelectedToken(address)
@@ -377,7 +374,7 @@ export const TokenList: React.FC<TokenListProps> = ({ aaAddress, publicClient, i
                           rel="noopener noreferrer"
                           className="flex items-center gap-1 text-primary hover:text-primary/80 font-mono text-xs"
                         >
-                          {shortenAddress(token.address)}
+                          {shortenHex(token.address)}
                           <ArrowUpRight className="h-3 w-3" />
                         </a>
                       </TableCell>

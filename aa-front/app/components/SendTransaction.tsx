@@ -9,6 +9,7 @@ import { useAA } from '../hooks/useAA'
 import { encodeFunctionData, Hex, parseEther } from 'viem'
 import { SimpleAccountABI } from '../abi/simpleAccount'
 import { useUserOperationExecutor } from '../hooks/useUserOpExecutor'
+import { useUserOp } from '../contexts/FetchUserOpContext'
 
 interface TransactionInput {
   recipient: Hex | ''
@@ -33,6 +34,8 @@ export const SendTransaction: React.FC<SendTransactionProps> = ({
 
   const { aaAddress } = useAA()
   const { executeCallData } = useUserOperationExecutor(aaAddress)
+
+  const { fetchUserOps } = useUserOp()
 
   const addTransaction = () => {
     setTransactions([...transactions, { recipient: '', amount: '' }])
@@ -74,6 +77,7 @@ export const SendTransaction: React.FC<SendTransactionProps> = ({
             hash: result.txHash,
           })
 
+          await fetchUserOps()
           onTransactionComplete()
         } else {
           throw new Error(result.error || 'Transaction failed')
@@ -96,6 +100,7 @@ export const SendTransaction: React.FC<SendTransactionProps> = ({
             hash: result.txHash,
           })
 
+          await fetchUserOps()
           onTransactionComplete()
         } else {
           throw new Error(result.error || 'Transaction failed')

@@ -22,6 +22,7 @@ import { WRAPPED_SEPOLIA_ADDRESS } from '../constants/addresses'
 import { TOKEN_OPTIONS } from '../constants/tokenList'
 import { useSwap } from '../hooks/useSwap'
 import TokenSelector from './TokenSelector'
+import { useUserOp } from '../contexts/FetchUserOpContext'
 
 interface SwapProps {
   isDeployed: boolean
@@ -54,6 +55,8 @@ export const Swap: React.FC<SwapProps> = ({ isDeployed, onSwapComplete }) => {
   // Add states to store token balances to prevent infinite loops
   const [fromTokenBalance, setFromTokenBalance] = useState<string>('0')
   const [toTokenBalance, setToTokenBalance] = useState<string>('0')
+
+  const { fetchUserOps } = useUserOp()
 
   // Fetch token balances when tokens change
   useEffect(() => {
@@ -227,6 +230,7 @@ export const Swap: React.FC<SwapProps> = ({ isDeployed, onSwapComplete }) => {
         setFromAmount('')
         setToAmount('')
 
+        await fetchUserOps()
         if (onSwapComplete) onSwapComplete()
       } else {
         throw new Error(swapResult.error || 'Swap failed')
