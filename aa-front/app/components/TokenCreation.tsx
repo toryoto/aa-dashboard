@@ -14,6 +14,7 @@ import { TokenList } from './TokenList'
 import { useTokenManagement } from '../hooks/useTokenManagement'
 import { useUserOperationExecutor } from '../hooks/useUserOpExecutor'
 import { Alert, AlertDescription } from './ui/alert'
+import { useUserOp } from '../contexts/FetchUserOpContext'
 
 const ETHERSCAN_BASE_URL = 'https://sepolia.etherscan.io'
 
@@ -35,6 +36,8 @@ export const TokenCreation = ({ isDeployed }: { isDeployed: boolean }) => {
   const { executeCallData } = useUserOperationExecutor(aaAddress)
 
   const { updateTokenBalances } = useTokenManagement(publicClient, aaAddress)
+
+  const { fetchUserOps } = useUserOp()
 
   const handleCreateToken = async () => {
     setIsLoading(true)
@@ -69,6 +72,8 @@ export const TokenCreation = ({ isDeployed }: { isDeployed: boolean }) => {
         setTokenSymbol('')
         setTokenSupply('')
         await updateTokenBalances()
+        
+        await fetchUserOps()
       } else {
         setResult({
           success: false,

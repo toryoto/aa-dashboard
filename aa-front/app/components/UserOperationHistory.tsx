@@ -7,21 +7,7 @@ import { Hex } from 'viem'
 import { useAA } from '../hooks/useAA'
 import { decodeCallData } from '../utils/decodeCallData'
 import { formatDate, shortenHex } from '../utils/format'
-
-interface UserOperation {
-  id: number
-  userOpHash: string
-  sender: string
-  nonce: string
-  success: boolean
-  transactionHash: string
-  blockNumber: string
-  blockTimestamp: string
-  calldata: string
-  paymentMethod: string | null
-  error: string | null
-  initCode: string | null
-}
+import { useUserOp } from '../contexts/FetchUserOpContext'
 
 interface UserOperationHistoryProps {
   isVisible: boolean
@@ -30,50 +16,18 @@ interface UserOperationHistoryProps {
 
 const UserOperationHistory: React.FC<UserOperationHistoryProps> = ({ isVisible, onClose }) => {
   const { aaAddress } = useAA()
-  const [userOps, setUserOps] = useState<UserOperation[]>([])
-  const [loading, setLoading] = useState<boolean>(false)
-  const [error, setError] = useState<string | null>(null)
-  const [selectedOp, setSelectedOp] = useState<UserOperation | null>(null)
+  const [selectedOp, setSelectedOp] = useState<any | null>(null)
   const [showDetails, setShowDetails] = useState<boolean>(false)
-  const [page, setPage] = useState<number>(1)
-
-  const fetchUserOps = async () => {
-    if (!aaAddress || aaAddress === '0x') return
-
-    setLoading(true)
-    setError(null)
-
-    try {
-      const response = await fetch(
-        `/api/getUserOp?address=${aaAddress}&limit=10&offset=${(page - 1) * 10}`
-      )
-
-      if (!response.ok) {
-        throw new Error('Failed to fetch UserOps')
-      }
-
-      const data = await response.json()
-
-      if (data.success) {
-        setUserOps(data.data)
-      } else {
-        setError(data.message || 'Failed to fetch UserOps')
-      }
-    } catch (err) {
-      console.error('Error fetching UserOps:', err)
-      setError(err instanceof Error ? err.message : 'Unknown error')
-    } finally {
-      setLoading(false)
-    }
-  }
+  
+  const { userOps, loading, error, fetchUserOps } = useUserOp()
 
   useEffect(() => {
     if (isVisible && aaAddress) {
       fetchUserOps()
     }
-  }, [isVisible, aaAddress, page])
+  }, [isVisible, aaAddress, fetchUserOps])
 
-  const handleOpClick = (op: UserOperation) => {
+  const handleOpClick = (op: any) => {
     setSelectedOp(op)
     setShowDetails(true)
   }
@@ -170,7 +124,7 @@ const UserOperationHistory: React.FC<UserOperationHistoryProps> = ({ isVisible, 
           </div>
         )}
 
-        {/* ページネーション */}
+        {/* ページネーション
         <div className="flex justify-center mt-6 gap-2">
           <Button
             variant="outline"
@@ -189,7 +143,7 @@ const UserOperationHistory: React.FC<UserOperationHistoryProps> = ({ isVisible, 
             <ChevronRight className="h-4 w-4" />
           </Button>
         </div>
-      </div>
+      </div> */}
 
       <Dialog open={showDetails} onOpenChange={setShowDetails}>
         <DialogContent className="max-w-xl">
@@ -331,6 +285,7 @@ const UserOperationHistory: React.FC<UserOperationHistoryProps> = ({ isVisible, 
           )}
         </DialogContent>
       </Dialog>
+      </div>
     </aside>
   )
 }
