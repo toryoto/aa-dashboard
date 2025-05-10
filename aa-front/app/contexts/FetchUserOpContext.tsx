@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useState, useCallback, ReactNode } from 'react'
 import { useAA } from '../hooks/useAA'
 
-interface UserOperation {
+interface UserOperationHistory {
   userOpHash: string
   sender: string
   transactionHash: string
@@ -12,7 +12,7 @@ interface UserOperation {
 }
 
 interface UserOpContextType {
-  userOps: UserOperation[]
+  userOps: UserOperationHistory[]
   loading: boolean
   error: string | null
   fetchUserOps: () => Promise<void>
@@ -22,12 +22,11 @@ const UserOpContext = createContext<UserOpContextType | undefined>(undefined)
 
 export function UserOpProvider({ children }: { children: ReactNode }) {
   const { aaAddress } = useAA()
-  const [userOps, setUserOps] = useState<UserOperation[]>([])
+  const [userOps, setUserOps] = useState<UserOperationHistory[]>([])
   const [loading, setLoading] = useState<boolean>(false)
   const [error, setError] = useState<string | null>(null)
 
   const fetchUserOps = useCallback(async () => {
-    console.log(123454321)
     if (!aaAddress || aaAddress === '0x') return
 
     setLoading(true)

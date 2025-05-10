@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react'
-import { Clock, Activity, ChevronRight, ChevronLeft, X, ExternalLink } from 'lucide-react'
+import { Clock, Activity, X, ExternalLink } from 'lucide-react'
 import { Button } from './ui/button'
 import { Badge } from './ui/badge'
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from './ui/dialog'
-import { Hex } from 'viem'
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from './ui/dialog'
+import { formatEther, Hex } from 'viem'
 import { useAA } from '../hooks/useAA'
 import { decodeCallData } from '../utils/decodeCallData'
 import { formatDate, shortenHex } from '../utils/format'
@@ -39,7 +39,10 @@ const UserOperationHistory: React.FC<UserOperationHistoryProps> = ({ isVisible, 
       const decoded = decodeCallData(calldata as Hex)
 
       if (decoded.operations && decoded.operations.length > 0) {
-        return decoded.operations[0].functionName
+        const name = decoded.operations[decoded.operations.length - 1].functionName
+        if (name.length > 15)
+          return decoded.operations[decoded.operations.length - 1].functionName.slice(0, 15) + '...'
+        else return name
       }
 
       return decoded.functionName || 'Unknown Operation'
@@ -149,9 +152,6 @@ const UserOperationHistory: React.FC<UserOperationHistoryProps> = ({ isVisible, 
           <DialogContent className="max-w-xl">
             <DialogHeader>
               <DialogTitle>UserOperation Detail</DialogTitle>
-              <DialogDescription>
-                {selectedOp && getOperationName(selectedOp.calldata)}
-              </DialogDescription>
             </DialogHeader>
 
             {selectedOp && (
@@ -229,7 +229,7 @@ const UserOperationHistory: React.FC<UserOperationHistoryProps> = ({ isVisible, 
                                         <span className="font-medium">{op.functionName}</span>
                                         {op.value && op.value > BigInt(0) && (
                                           <Badge variant="outline" className="bg-blue-50">
-                                            {op.value.toString()} Wei
+                                            {formatEther(op.value)} ETH
                                           </Badge>
                                         )}
                                       </div>
