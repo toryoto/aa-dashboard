@@ -34,6 +34,7 @@ const UserOperationHistory: React.FC<UserOperationHistoryProps> = ({ isVisible, 
 
   // refを付与した最後の要素が画面に表示されたときに自動的に発火するメソッド
   // 毎レンダリングで関数インスタンスを作成すると、IntersectionObserverが再生成されるため、パフォーマンスの観点からcallbackにする
+  // このメソッドの役割はObserberをセットするだけ
   const lastUserOpRef = useCallback(
     (node: HTMLDivElement) => {
       if (loading) return
@@ -122,6 +123,8 @@ const UserOperationHistory: React.FC<UserOperationHistoryProps> = ({ isVisible, 
             {userOps.map((op, index) => (
               <div
                 key={op.userOpHash}
+                // 最後の要素であればrefにlastUserOpRefを渡す
+                // → これがIntersection Observerの監視対象になる
                 ref={index === userOps.length - 1 ? lastUserOpRef : undefined}
                 className={'p-3 rounded-lg border cursor-pointer hover:shadow-md transition-shadow'}
                 onClick={() => handleOpClick(op)}
