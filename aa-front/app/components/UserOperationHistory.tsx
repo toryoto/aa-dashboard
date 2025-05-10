@@ -1,9 +1,9 @@
-import React, { useState, useEffect } from 'react'
-import { Clock, Activity, ChevronRight, ChevronLeft, X, ExternalLink } from 'lucide-react'
+import React, { useState, useEffect, useRef, useCallback } from 'react'
+import { Clock, Activity, X, ExternalLink } from 'lucide-react'
 import { Button } from './ui/button'
 import { Badge } from './ui/badge'
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from './ui/dialog'
-import { Hex } from 'viem'
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from './ui/dialog'
+import { formatEther, Hex } from 'viem'
 import { useAA } from '../hooks/useAA'
 import { decodeCallData } from '../utils/decodeCallData'
 import { formatDate, shortenHex } from '../utils/format'
@@ -18,14 +18,41 @@ const UserOperationHistory: React.FC<UserOperationHistoryProps> = ({ isVisible, 
   const { aaAddress } = useAA()
   const [selectedOp, setSelectedOp] = useState<any | null>(null)
   const [showDetails, setShowDetails] = useState<boolean>(false)
+  const [currentPage, setCurrentPage] = useState<number>(1)
+  const observer = useRef<IntersectionObserver | null>(null)
 
-  const { userOps, loading, error, fetchUserOps } = useUserOp()
+  const { userOps, loading, error, fetchUserOps, resetUserOps, hasMore } = useUserOp()
 
+  // 初期表示時に1ページ目のデータ取得とページリセットを行う
   useEffect(() => {
     if (isVisible && aaAddress) {
-      fetchUserOps()
+      resetUserOps()
+      setCurrentPage(1)
+      fetchUserOps(1)
     }
-  }, [isVisible, aaAddress, fetchUserOps])
+  }, [isVisible, aaAddress, fetchUserOps, resetUserOps])
+
+  // refを付与した最後の要素が画面に表示されたときに自動的に発火するメソッド
+  // 毎レンダリングで関数インスタンスを作成すると、IntersectionObserverが再生成されるため、パフォーマンスの観点からcallbackにする
+  // このメソッドの役割はObserberをセットするだけ
+  const lastUserOpRef = useCallback(
+    (node: HTMLDivElement) => {
+      if (loading) return
+
+      if (observer.current) observer.current.disconnect()
+
+      observer.current = new IntersectionObserver(entries => {
+        if (entries[0]?.isIntersecting && hasMore) {
+          const nextPage = currentPage + 1
+          setCurrentPage(nextPage)
+          fetchUserOps(nextPage) // 次のページを取得
+        }
+      })
+
+      if (node) observer.current.observe(node)
+    },
+    [loading, hasMore, fetchUserOps, currentPage]
+  )
 
   const handleOpClick = (op: any) => {
     setSelectedOp(op)
@@ -39,7 +66,10 @@ const UserOperationHistory: React.FC<UserOperationHistoryProps> = ({ isVisible, 
       const decoded = decodeCallData(calldata as Hex)
 
       if (decoded.operations && decoded.operations.length > 0) {
-        return decoded.operations[0].functionName
+        const name = decoded.operations[decoded.operations.length - 1].functionName
+        if (name.length > 15)
+          return decoded.operations[decoded.operations.length - 1].functionName.slice(0, 15) + '...'
+        else return name
       }
 
       return decoded.functionName || 'Unknown Operation'
@@ -66,7 +96,7 @@ const UserOperationHistory: React.FC<UserOperationHistoryProps> = ({ isVisible, 
 
   return (
     <aside
-      className={`border-r border-slate-200 h-screen fixed top-0 left-0 w-80 bg-white shadow-lg transition-transform duration-300 transform ${isVisible ? 'translate-x-0' : '-translate-x-full'} overflow-auto z-10`}
+      className={`border-r border-slate-200 h-screen fixed top-0 left-0 w-80 bg-white shadow-lg transition-transform duration-300 transform ${isVisible ? 'translate-x-0' : '-translate-x-full'} overflow-auto z-10 scrollbar-none`}
     >
       <div className="sticky top-0 bg-white p-4 border-b border-slate-200 flex justify-between items-center z-20">
         <div className="flex items-center gap-2">
@@ -79,11 +109,7 @@ const UserOperationHistory: React.FC<UserOperationHistoryProps> = ({ isVisible, 
       </div>
 
       <div className="p-4">
-        {loading ? (
-          <div className="flex justify-center items-center p-8">
-            <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary"></div>
-          </div>
-        ) : error ? (
+        {error ? (
           <div className="bg-red-50 text-red-700 p-4 rounded-md border border-red-200 mt-4">
             <p>{error}</p>
           </div>
@@ -94,9 +120,12 @@ const UserOperationHistory: React.FC<UserOperationHistoryProps> = ({ isVisible, 
           </div>
         ) : (
           <div className="space-y-3">
-            {userOps.map(op => (
+            {userOps.map((op, index) => (
               <div
                 key={op.userOpHash}
+                // 最後の要素であればrefにlastUserOpRefを渡す
+                // → これがIntersection Observerの監視対象になる
+                ref={index === userOps.length - 1 ? lastUserOpRef : undefined}
                 className={'p-3 rounded-lg border cursor-pointer hover:shadow-md transition-shadow'}
                 onClick={() => handleOpClick(op)}
               >
@@ -124,34 +153,20 @@ const UserOperationHistory: React.FC<UserOperationHistoryProps> = ({ isVisible, 
           </div>
         )}
 
-        {/* ページネーション
-        <div className="flex justify-center mt-6 gap-2">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => setPage(p => Math.max(1, p - 1))}
-            disabled={page === 1}
-          >
-            <ChevronLeft className="h-4 w-4" />
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => setPage(p => p + 1)}
-            disabled={userOps.length < 10}
-          >
-            <ChevronRight className="h-4 w-4" />
-          </Button>
-        </div>
-      </div> */}
+        {loading && !userOps.length && (
+          <div className="flex justify-center items-center p-4">
+            <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary"></div>
+          </div>
+        )}
+
+        {!loading && !hasMore && userOps.length > 0 && (
+          <div className="text-center p-4 text-sm text-slate-500">All history displayed</div>
+        )}
 
         <Dialog open={showDetails} onOpenChange={setShowDetails}>
           <DialogContent className="max-w-xl">
             <DialogHeader>
               <DialogTitle>UserOperation Detail</DialogTitle>
-              <DialogDescription>
-                {selectedOp && getOperationName(selectedOp.calldata)}
-              </DialogDescription>
             </DialogHeader>
 
             {selectedOp && (
@@ -229,7 +244,7 @@ const UserOperationHistory: React.FC<UserOperationHistoryProps> = ({ isVisible, 
                                         <span className="font-medium">{op.functionName}</span>
                                         {op.value && op.value > BigInt(0) && (
                                           <Badge variant="outline" className="bg-blue-50">
-                                            {op.value.toString()} Wei
+                                            {formatEther(op.value)} ETH
                                           </Badge>
                                         )}
                                       </div>
