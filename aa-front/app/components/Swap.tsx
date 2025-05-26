@@ -360,8 +360,8 @@ export const Swap: React.FC<SwapProps> = ({ isDeployed, onSwapComplete }) => {
           </div>
 
           <div className="p-4 bg-slate-50 rounded-lg border border-slate-200">
-            <div className="flex items-center gap-2 mb-2">
-              <div className="w-[140px]">
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 mb-2">
+              <div className="w-full sm:w-[140px]">
                 <TokenSelector
                   value={fromToken}
                   onChange={value => {
@@ -380,7 +380,7 @@ export const Swap: React.FC<SwapProps> = ({ isDeployed, onSwapComplete }) => {
                   placeholder="0.0001"
                   value={fromAmount}
                   onChange={e => setFromAmount(e.target.value)}
-                  className="pr-16 bg-white"
+                  className="pr-16 bg-white text-base sm:text-sm"
                   step="0.0001"
                 />
                 <Button
@@ -423,8 +423,8 @@ export const Swap: React.FC<SwapProps> = ({ isDeployed, onSwapComplete }) => {
           </div>
 
           <div className="p-4 bg-slate-50 rounded-lg border border-slate-200">
-            <div className="flex items-center gap-2 mb-2">
-              <div className="w-[140px]">
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 mb-2">
+              <div className="w-full sm:w-[140px]">
                 <TokenSelector
                   value={toToken}
                   onChange={value => {
@@ -443,7 +443,7 @@ export const Swap: React.FC<SwapProps> = ({ isDeployed, onSwapComplete }) => {
                   placeholder="0.0"
                   value={toAmount}
                   disabled
-                  className="bg-slate-100 text-slate-700"
+                  className="bg-slate-100 text-slate-700 text-base sm:text-sm"
                 />
               </div>
             </div>

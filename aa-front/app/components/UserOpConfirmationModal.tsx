@@ -87,13 +87,13 @@ export const UserOpConfirmationModal: React.FC<UserOpConfirmationModalProps> = (
 
   return (
     <Dialog open={isOpen} onOpenChange={open => !open && onClose()}>
-      <DialogContent className="max-w-md">
-        <DialogHeader>
+      <DialogContent className="max-w-md max-h-[90vh] flex flex-col">
+        <DialogHeader className="flex-shrink-0">
           <DialogTitle>Confirm Transaction</DialogTitle>
         </DialogHeader>
 
-        <div className="py-2">
-          <div className="border border-slate-200 rounded-lg p-4 bg-slate-50">
+        <div className="flex-1 overflow-y-auto min-h-0 py-2">
+          <div className="border border-slate-200 rounded-lg p-3 bg-slate-50">
             {/* Main function name */}
             <div className="mb-3">
               <span className="text-sm font-medium">Transaction Type: </span>
@@ -103,7 +103,7 @@ export const UserOpConfirmationModal: React.FC<UserOpConfirmationModalProps> = (
             {decodedData.operations && decodedData.operations.length > 0 && (
               <div className="mb-3">
                 <span className="text-sm font-medium">Operations:</span>
-                <div className="mt-2 space-y-3">
+                <div className="mt-2 space-y-2">
                   {decodedData.operations.map((op, index) => (
                     <div key={index} className="bg-white p-2 rounded border border-slate-200">
                       <div className="flex items-center justify-between mb-1">
@@ -128,7 +128,7 @@ export const UserOpConfirmationModal: React.FC<UserOpConfirmationModalProps> = (
                             <summary className="cursor-pointer hover:text-blue-600">
                               View arguments
                             </summary>
-                            <div className="mt-1 bg-slate-100 p-2 rounded text-xs font-mono overflow-x-auto max-h-32 overflow-y-auto">
+                            <div className="mt-1 bg-slate-100 p-2 rounded text-xs font-mono overflow-x-auto overflow-y-auto">
                               <pre className="whitespace-pre-wrap break-all">
                                 {formatArgsForDisplay(op.args)}
                               </pre>
@@ -143,7 +143,7 @@ export const UserOpConfirmationModal: React.FC<UserOpConfirmationModalProps> = (
             )}
 
             {gasEstimate && (
-              <div className="mt-4 border-t pt-3">
+              <div className="mt-3 border-t pt-3">
                 <h4 className="text-sm font-medium mb-2 flex items-center">
                   Gas Estimate
                   <TooltipProvider>
@@ -157,10 +157,10 @@ export const UserOpConfirmationModal: React.FC<UserOpConfirmationModalProps> = (
                   </TooltipProvider>
                 </h4>
 
-                <div className="text-sm space-y-2">
+                <div className="text-sm">
                   <div className="flex justify-between">
                     <span className="text-slate-500">Max Gas Fee:</span>
-                    <Badge variant="outline" className="bg-blue-50 text-blue-800 font-mono">
+                    <Badge variant="outline" className="bg-blue-50 text-blue-800 font-mono text-xs">
                       {gasEstimate.totalGasEth} ETH
                     </Badge>
                   </div>
@@ -168,7 +168,7 @@ export const UserOpConfirmationModal: React.FC<UserOpConfirmationModalProps> = (
               </div>
             )}
 
-            <div className="mt-4 border-t pt-3">
+            <div className="mt-3 border-t pt-3">
               <h4 className="text-sm font-medium mb-2">Payment Method</h4>
               <RadioGroup
                 value={selection.paymentOption}
@@ -178,18 +178,18 @@ export const UserOpConfirmationModal: React.FC<UserOpConfirmationModalProps> = (
                     paymentOption: value as 'native' | 'token' | 'paymaster',
                   })
                 }
-                className="space-y-2"
+                className="space-y-1.5"
               >
                 <div className="flex items-center space-x-2">
                   <RadioGroupItem value="native" id="native" />
-                  <Label htmlFor="native" className="cursor-pointer">
+                  <Label htmlFor="native" className="cursor-pointer text-sm">
                     Sepolia ETH
                   </Label>
                 </div>
 
                 <div className="flex items-center space-x-2">
                   <RadioGroupItem value="token" id="token" />
-                  <Label htmlFor="token" className="cursor-pointer flex items-center">
+                  <Label htmlFor="token" className="cursor-pointer flex items-center text-sm">
                     <div className="flex items-center">
                       {daiToken && (
                         <Image
@@ -207,7 +207,7 @@ export const UserOpConfirmationModal: React.FC<UserOpConfirmationModalProps> = (
 
                 <div className="flex items-center space-x-2">
                   <RadioGroupItem value="paymaster" id="paymaster" />
-                  <Label htmlFor="paymaster" className="cursor-pointer">
+                  <Label htmlFor="paymaster" className="cursor-pointer text-sm">
                     Paymaster
                   </Label>
                 </div>
@@ -216,7 +216,7 @@ export const UserOpConfirmationModal: React.FC<UserOpConfirmationModalProps> = (
           </div>
         </div>
 
-        <DialogFooter className="flex gap-3">
+        <DialogFooter className="flex gap-3 flex-shrink-0 pt-4">
           <Button
             type="button"
             variant="outline"
