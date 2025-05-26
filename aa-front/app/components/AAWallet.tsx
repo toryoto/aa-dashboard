@@ -253,15 +253,6 @@ export default function AAWallet() {
                         </span>
                       )}
                       <span className="text-slate-600">ETH</span>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        className="h-6 w-6 p-0"
-                        onClick={fetchBalance}
-                        title="Refresh balance"
-                      >
-                        <RefreshCw className="h-3 w-3 text-slate-500 hover:text-primary" />
-                      </Button>
                     </div>
                   </div>
                 </div>
