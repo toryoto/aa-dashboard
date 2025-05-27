@@ -70,7 +70,7 @@ export function useEstimateUserOperationGas() {
         totalGasEth,
       }
     } catch (error) {
-      console.warn('ガス推定に失敗しました、デフォルト値を使用します:', error)
+      console.warn('Gas estimation failed, using default values:', error)
       return {
         userOpResult: userOp,
         totalGasWei: BigInt(0),

@@ -70,7 +70,7 @@ export function UserOpConfirmationProvider({ children }: { children: ReactNode }
     if (isProcessing) return
 
     if (confirmReject) {
-      confirmReject(new Error('ユーザーが操作をキャンセルしました'))
+      confirmReject(new Error('User cancelled the operation'))
     }
 
     setIsModalOpen(false)

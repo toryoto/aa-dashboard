@@ -205,7 +205,7 @@ export function useUserOperationExecutor(aaAddress: Hex) {
             preVerificationGas: userOpResult.preVerificationGas,
           }
         } catch (estimateError) {
-          console.warn('ガス推定に失敗しました:', estimateError)
+          console.warn('Gas estimation failed:', estimateError)
           // エラーが発生しても続行（情報なしで）
         }
 
@@ -259,11 +259,11 @@ export function useUserOperationExecutor(aaAddress: Hex) {
 
         return result
       } catch (error) {
-        console.error('UserOperation実行中にエラーが発生しました:', error)
+        console.error('An error occurred during UserOperation execution:', error)
         completeOperation(false)
         return {
           success: false,
-          error: error instanceof Error ? error.message : '不明なエラーが発生しました',
+          error: error instanceof Error ? error.message : 'An unknown error occurred',
         }
       }
     },
