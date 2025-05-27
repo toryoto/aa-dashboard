@@ -17,7 +17,7 @@ export const getUserOpController = async (req: Request, res: Response) => {
       return
     }
 
-    // dateRangeのパース
+    // Parse dateRange parameter
     let parsedDateRange
     if (dateRange) {
       try {
@@ -31,7 +31,7 @@ export const getUserOpController = async (req: Request, res: Response) => {
       }
     }
 
-    // セキュリティの観点からデフォルトの取得条件を指定する
+    // Apply default fetch limits for security purposes
     const take = Math.min(Number(limit) || DEFAULT_LIMIT, MAX_LIMIT)
 
     const userOps = await prisma.userOperation.findMany({
@@ -53,7 +53,7 @@ export const getUserOpController = async (req: Request, res: Response) => {
       take: take,
     })
 
-    // BigIntをstringに変換
+    // Convert BigInt values to strings for JSON serialization
     const responseData = userOps.map(op => ({
       ...op,
       nonce: op.nonce.toString(),

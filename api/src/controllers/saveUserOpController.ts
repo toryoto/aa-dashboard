@@ -27,7 +27,7 @@ export const saveUserOpController = async (req: Request, res: Response) => {
       return
     }
 
-    // 16進数の文字列（0xで始まる）をBigIntに変換
+    // Convert hexadecimal string (starting with 0x) to BigInt
     const parsedNonce = nonce.startsWith('0x') ? BigInt(nonce) : BigInt(nonce)
 
     const userOperation = await prisma.userOperation.create({
@@ -46,7 +46,7 @@ export const saveUserOpController = async (req: Request, res: Response) => {
       },
     })
 
-    // json.stringfy()はBigIntをサポートしていないからBitIntをstringにして返す
+    // Convert BigInt to string since JSON.stringify() doesn't support BigInt
     const responseData = {
       id: userOperation.id,
       userOpHash: userOperation.userOpHash,

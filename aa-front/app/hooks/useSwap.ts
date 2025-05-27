@@ -16,11 +16,11 @@ import { wrappedSepolia } from '../abi/wrappedSepolia'
 import { useUserOp } from '../contexts/FetchUserOpContext'
 
 interface SwapOptions {
-  fromToken: string // トークンのアドレス
-  toToken: string // トークンのアドレス
-  amount: string // 入力金額
-  slippage: number // スリッページ許容値（パーセント）
-  deadline: number // 期限（秒）
+  fromToken: string // Token address
+  toToken: string // Token address
+  amount: string // Input amount
+  slippage: number // Slippage tolerance (percentage)
+  deadline: number // Deadline (seconds)
 }
 
 interface TransactionResult {
@@ -278,8 +278,8 @@ export function useSwap(aaAddress: Hex) {
       } catch (error) {
         console.error('Failed to get amounts out:', error)
 
-        // フォールバック: シンプルなダミーレートを使用
-        // 実際の実装では削除
+        // Fallback: use simple dummy rate
+        // Remove in actual implementation
         const estimatedAmount = parseFloat(amount) * 1.5
         return estimatedAmount.toString()
       }

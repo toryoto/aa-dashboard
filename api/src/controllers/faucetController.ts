@@ -20,9 +20,9 @@ const walletClient = createWalletClient({
 
 const checkAccessLimit = async (walletAddress: string, ipAddress: string, func: string) => {
   const now = new Date()
-  const limitWindow = 24 * 60 * 60 * 1000 // 24時間
+  const limitWindow = 24 * 60 * 60 * 1000 // 24 hours
 
-  // IPアドレスの制限（24時間で3回まで）
+  // IP address rate limit (3 requests per 24 hours)
   const ipRecord = await prisma.accessLimit.findUnique({
     where: {
       idx_identifier_type_feature: {
@@ -40,7 +40,7 @@ const checkAccessLimit = async (walletAddress: string, ipAddress: string, func: 
         return { limited: true, reason: 'ip' }
       }
     } else {
-      // 24時間経過していればリセット
+      // Reset if 24 hours have passed
       await prisma.accessLimit.update({
         where: { id: ipRecord.id },
         data: { firstRequestAt: now, requestCount: 1 },
@@ -58,7 +58,7 @@ const checkAccessLimit = async (walletAddress: string, ipAddress: string, func: 
     })
   }
 
-  // ウォレットアドレスの制限（24時間で1回まで）
+  // Wallet address rate limit (1 request per 24 hours)
   const walletRecord = await prisma.accessLimit.findUnique({
     where: {
       idx_identifier_type_feature: {
@@ -93,7 +93,7 @@ const checkAccessLimit = async (walletAddress: string, ipAddress: string, func: 
     })
   }
 
-  // 制限にかかっていなければカウントを1増やす
+  // Increment count if not rate limited
   if (ipRecord && now.getTime() - new Date(ipRecord.firstRequestAt).getTime() < limitWindow) {
     await prisma.accessLimit.update({
       where: { id: ipRecord.id },
