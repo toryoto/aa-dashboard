@@ -23,6 +23,7 @@ import { TOKEN_OPTIONS } from '../constants/tokenList'
 import { useSwap } from '../hooks/useSwap'
 import TokenSelector from './TokenSelector'
 import { useUserOp } from '../contexts/FetchUserOpContext'
+import { useTransactionResult } from '../hooks/useTransactionResult'
 
 interface SwapProps {
   isDeployed: boolean
@@ -42,13 +43,7 @@ export const Swap: React.FC<SwapProps> = ({ isDeployed, onSwapComplete }) => {
   const [toAmount, setToAmount] = useState<string>('')
   const [slippage, setSlippage] = useState<number>(0.5)
   const [showSettings, setShowSettings] = useState<boolean>(false)
-  const [swapStatus, setSwapStatus] = useState<{
-    status: 'success' | 'error' | null
-    message: string
-  }>({
-    status: null,
-    message: '',
-  })
+  const { result: swapStatus, setSuccess, setError, clearResult } = useTransactionResult()
   const [priceImpact, setPriceImpact] = useState<string>('0.00')
   const [pairSupported, setPairSupported] = useState<boolean>(false)
   const [isCheckingPair, setIsCheckingPair] = useState<boolean>(false)
@@ -100,7 +95,7 @@ export const Swap: React.FC<SwapProps> = ({ isDeployed, onSwapComplete }) => {
         setIsCheckingPair(true)
         setFromAmount('')
         setToAmount('')
-        setSwapStatus({ status: null, message: '' })
+        clearResult()
         setPairSupported(false)
 
         try {
@@ -114,10 +109,7 @@ export const Swap: React.FC<SwapProps> = ({ isDeployed, onSwapComplete }) => {
 
           // If not supported, show an alert
           if (!supported) {
-            setSwapStatus({
-              status: 'error',
-              message: 'This token pair does not have a liquidity pool available.',
-            })
+            setError('This token pair does not have a liquidity pool available.')
           } else {
             // Set a random price impact between 0.1% and 2% for supported pairs
             const impact = (0.1 + Math.random() * 1.9).toFixed(2)
@@ -126,10 +118,7 @@ export const Swap: React.FC<SwapProps> = ({ isDeployed, onSwapComplete }) => {
         } catch (error) {
           console.error('Error checking pair support:', error)
           setPairSupported(false)
-          setSwapStatus({
-            status: 'error',
-            message: 'Error checking pair support. Please try again.',
-          })
+          setError('Error checking pair support. Please try again.')
         } finally {
           setIsCheckingPair(false)
         }
@@ -191,7 +180,7 @@ export const Swap: React.FC<SwapProps> = ({ isDeployed, onSwapComplete }) => {
   const handleSwap = async () => {
     if (!fromToken || !toToken || !fromAmount || parseFloat(fromAmount) <= 0 || !pairSupported)
       return
-    setSwapStatus({ status: null, message: '' })
+    clearResult()
 
     try {
       // 状態表示用のメッセージを作成
@@ -221,10 +210,10 @@ export const Swap: React.FC<SwapProps> = ({ isDeployed, onSwapComplete }) => {
         const fromTokenSymbol = fromToken === 'SEP' ? 'SEP' : await getTokenSymbol(fromTokenAddress)
         const toTokenSymbol = toToken === 'SEP' ? 'SEP' : await getTokenSymbol(toTokenAddress)
 
-        setSwapStatus({
-          status: 'success',
-          message: `Successfully swapped ${fromAmount} ${fromTokenSymbol} for ${toAmount} ${toTokenSymbol}`,
-        })
+        setSuccess(
+          swapResult.txHash,
+          `Successfully swapped ${fromAmount} ${fromTokenSymbol} for ${toAmount} ${toTokenSymbol}`
+        )
 
         // Reset form after successful swap
         setFromAmount('')
@@ -236,10 +225,7 @@ export const Swap: React.FC<SwapProps> = ({ isDeployed, onSwapComplete }) => {
         throw new Error(swapResult.error || 'Swap failed')
       }
     } catch (error) {
-      setSwapStatus({
-        status: 'error',
-        message: error instanceof Error ? error.message : 'Unknown error occurred',
-      })
+      setError(error instanceof Error ? error.message : 'Unknown error occurred')
     }
   }
 
@@ -301,17 +287,17 @@ export const Swap: React.FC<SwapProps> = ({ isDeployed, onSwapComplete }) => {
       </CardHeader>
 
       <CardContent className="space-y-4">
-        {swapStatus.status && (
+        {swapStatus && (
           <Alert
-            className={`${swapStatus.status === 'success' ? 'bg-green-50 border-green-200 text-green-800' : 'bg-red-50 border-red-200 text-red-800'}`}
+            className={`${swapStatus.success ? 'bg-green-50 border-green-200 text-green-800' : 'bg-red-50 border-red-200 text-red-800'}`}
           >
             <div className="flex items-start gap-2">
-              {swapStatus.status === 'success' ? (
+              {swapStatus.success ? (
                 <CheckCircle2 className="h-5 w-5 text-green-600 mt-0.5" />
               ) : (
                 <AlertCircle className="h-5 w-5 text-red-600 mt-0.5" />
               )}
-              <AlertDescription>{swapStatus.message}</AlertDescription>
+              <AlertDescription>{swapStatus.message || swapStatus.error}</AlertDescription>
             </div>
           </Alert>
         )}

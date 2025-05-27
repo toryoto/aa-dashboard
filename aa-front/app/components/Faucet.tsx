@@ -5,6 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/
 import { Button } from './ui/button'
 import { Alert, AlertDescription } from './ui/alert'
 import { useAA } from '../hooks/useAA'
+import { useTransactionResult } from '../hooks/useTransactionResult'
 
 interface FaucetProps {
   isDeployed: boolean
@@ -14,16 +15,11 @@ interface FaucetProps {
 export const Faucet: React.FC<FaucetProps> = ({ isDeployed, onFaucetComplete }) => {
   const { aaAddress } = useAA()
   const [isLoading, setIsLoading] = useState(false)
-  const [result, setResult] = useState<{
-    success: boolean
-    hash?: string
-    message?: string
-    error?: string
-  } | null>(null)
+  const { result, setSuccess, setError, clearResult } = useTransactionResult()
 
   const handleRequestFunds = async () => {
     setIsLoading(true)
-    setResult(null)
+    clearResult()
 
     try {
       const response = await fetch('/api/faucet', {
@@ -37,27 +33,20 @@ export const Faucet: React.FC<FaucetProps> = ({ isDeployed, onFaucetComplete }) 
       const data = await response.json()
 
       if (response.ok) {
-        setResult({
-          success: true,
-          hash: data.txHash,
-          message: data.message || 'Test ETH has been sent to your Smart Account!',
-        })
+        setSuccess(
+          data.txHash,
+          data.message || 'Test ETH has been sent to your Smart Account!'
+        )
 
         if (onFaucetComplete) {
           onFaucetComplete()
         }
       } else {
-        setResult({
-          success: false,
-          error: data.error || 'Failed to request test ETH. Please try again later.',
-        })
+        setError(data.error || 'Failed to request test ETH. Please try again later.')
       }
     } catch (error) {
       console.error('Faucet error:', error)
-      setResult({
-        success: false,
-        error: 'An unexpected error occurred. Please try again later.',
-      })
+      setError('An unexpected error occurred. Please try again later.')
     } finally {
       setIsLoading(false)
     }

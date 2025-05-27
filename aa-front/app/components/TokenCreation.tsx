@@ -15,22 +15,16 @@ import { useTokenManagement } from '../hooks/useTokenManagement'
 import { useUserOperationExecutor } from '../hooks/useUserOpExecutor'
 import { Alert, AlertDescription } from './ui/alert'
 import { useUserOp } from '../contexts/FetchUserOpContext'
+import { useTransactionResult } from '../hooks/useTransactionResult'
 
 const ETHERSCAN_BASE_URL = 'https://sepolia.etherscan.io'
-
-interface ExecutionResultDisplay {
-  success: boolean
-  hash?: Hex
-  message?: string
-  error?: string
-}
 
 export const TokenCreation = ({ isDeployed }: { isDeployed: boolean }) => {
   const [tokenName, setTokenName] = useState<string>('')
   const [tokenSymbol, setTokenSymbol] = useState<string>('')
   const [tokenSupply, setTokenSupply] = useState<string>('')
   const [isLoading, setIsLoading] = useState(false)
-  const [result, setResult] = useState<ExecutionResultDisplay | null>(null)
+  const { result, setSuccess, setError, clearResult } = useTransactionResult()
 
   const { aaAddress } = useAA()
   const { executeCallData } = useUserOperationExecutor(aaAddress)
@@ -41,7 +35,7 @@ export const TokenCreation = ({ isDeployed }: { isDeployed: boolean }) => {
 
   const handleCreateToken = async () => {
     setIsLoading(true)
-    setResult(null)
+    clearResult()
 
     try {
       if (!tokenName || !tokenSymbol || !tokenSupply) {
@@ -63,11 +57,7 @@ export const TokenCreation = ({ isDeployed }: { isDeployed: boolean }) => {
       const executionResult = await executeCallData(callData)
 
       if (executionResult.success && executionResult.txHash) {
-        setResult({
-          success: true,
-          hash: executionResult.txHash as Hex,
-          message: 'Token created successfully!',
-        })
+        setSuccess(executionResult.txHash, 'Token created successfully!')
         setTokenName('')
         setTokenSymbol('')
         setTokenSupply('')
@@ -75,19 +65,14 @@ export const TokenCreation = ({ isDeployed }: { isDeployed: boolean }) => {
 
         await fetchUserOps()
       } else {
-        setResult({
-          success: false,
-          error:
-            executionResult.error ||
-            'Token creation failed. Please check the console or bundler logs.',
-        })
+        setError(
+          executionResult.error ||
+            'Token creation failed. Please check the console or bundler logs.'
+        )
       }
     } catch (error: any) {
       console.error('Token creation error:', error)
-      setResult({
-        success: false,
-        error: error.message || 'An unexpected error occurred during token creation.',
-      })
+      setError(error.message || 'An unexpected error occurred during token creation.')
     } finally {
       setIsLoading(false)
     }
