@@ -33,10 +33,7 @@ export const Faucet: React.FC<FaucetProps> = ({ isDeployed, onFaucetComplete }) 
       const data = await response.json()
 
       if (response.ok) {
-        setSuccess(
-          data.txHash,
-          data.message || 'Test ETH has been sent to your Smart Account!'
-        )
+        setSuccess(data.txHash, data.message || 'Test ETH has been sent to your Smart Account!')
 
         if (onFaucetComplete) {
           onFaucetComplete()

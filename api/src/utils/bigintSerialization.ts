@@ -5,13 +5,13 @@
  */
 export const serializeBigInt = <T extends Record<string, any>>(obj: T): T => {
   const result = { ...obj }
-  
+
   for (const key in result) {
     if (typeof result[key] === 'bigint') {
       result[key] = result[key].toString() as any
     }
   }
-  
+
   return result
 }
 
