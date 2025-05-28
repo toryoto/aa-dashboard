@@ -3,11 +3,9 @@ import { privateKeyToAccount } from 'viem/accounts'
 import { sepolia } from 'viem/chains'
 import { publicClient } from '../utils/client'
 import dotenv from 'dotenv'
-import { PrismaClient } from '@prisma/client'
+import { prisma } from '../lib/prisma'
 
 dotenv.config()
-
-const prisma = new PrismaClient()
 
 const FAUCET_ADMIN_PRIVATE_KEY = process.env.FAUCET_ADMIN_PRIVATE_KEY as `0x${string}`
 

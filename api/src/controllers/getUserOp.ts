@@ -1,7 +1,6 @@
-import { PrismaClient } from '@prisma/client'
 import { Request, Response } from 'express'
-
-const prisma = new PrismaClient()
+import { prisma } from '../lib/prisma'
+import { serializeBigIntArray } from '../utils/bigintSerialization'
 const DEFAULT_LIMIT = 20
 const MAX_LIMIT = 100
 
@@ -54,12 +53,7 @@ export const getUserOpController = async (req: Request, res: Response) => {
     })
 
     // BigIntをstringに変換
-    const responseData = userOps.map(op => ({
-      ...op,
-      nonce: op.nonce.toString(),
-      blockNumber: op.blockNumber.toString(),
-      blockTimestamp: op.blockTimestamp.toString(),
-    }))
+    const responseData = serializeBigIntArray(userOps)
 
     res.status(200).json({
       success: true,

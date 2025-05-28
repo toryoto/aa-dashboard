@@ -1,7 +1,6 @@
-import { PrismaClient } from '@prisma/client'
 import { Request, Response } from 'express'
-
-const prisma = new PrismaClient()
+import { prisma } from '../lib/prisma'
+import { serializeBigInt } from '../utils/bigintSerialization'
 
 export const saveUserOpController = async (req: Request, res: Response) => {
   try {
@@ -47,17 +46,17 @@ export const saveUserOpController = async (req: Request, res: Response) => {
     })
 
     // json.stringfy()はBigIntをサポートしていないからBitIntをstringにして返す
-    const responseData = {
+    const responseData = serializeBigInt({
       id: userOperation.id,
       userOpHash: userOperation.userOpHash,
       sender: userOperation.sender,
-      nonce: userOperation.nonce.toString(),
+      nonce: userOperation.nonce,
       success: userOperation.success,
       transactionHash: userOperation.transactionHash,
-      blockNumber: userOperation.blockNumber.toString(),
-      blockTimestamp: userOperation.blockTimestamp.toString(),
+      blockNumber: userOperation.blockNumber,
+      blockTimestamp: userOperation.blockTimestamp,
       paymentMethod: userOperation.paymentMethod,
-    }
+    })
 
     res.status(201).json({
       success: true,
