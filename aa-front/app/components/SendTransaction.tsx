@@ -10,6 +10,7 @@ import { encodeFunctionData, Hex, parseEther } from 'viem'
 import { SimpleAccountABI } from '../abi/simpleAccount'
 import { useUserOperationExecutor } from '../hooks/useUserOpExecutor'
 import { useUserOp } from '../contexts/FetchUserOpContext'
+import { useTransactionResult } from '../hooks/useTransactionResult'
 
 interface TransactionInput {
   recipient: Hex | ''
@@ -28,9 +29,7 @@ export const SendTransaction: React.FC<SendTransactionProps> = ({
   const [transactions, setTransactions] = useState<TransactionInput[]>([
     { recipient: '', amount: '' },
   ])
-  const [result, setResult] = useState<{ success?: boolean; hash?: string; error?: string } | null>(
-    null
-  )
+  const { result, setSuccess, setError, clear } = useTransactionResult()
 
   const { aaAddress } = useAA()
   const { executeCallData } = useUserOperationExecutor(aaAddress)
@@ -39,12 +38,12 @@ export const SendTransaction: React.FC<SendTransactionProps> = ({
 
   const addTransaction = () => {
     setTransactions([...transactions, { recipient: '', amount: '' }])
-    setResult(null)
+    clear()
   }
 
   const removeTransaction = (index: number) => {
     setTransactions(transactions.filter((_, i) => i !== index))
-    setResult(null)
+    clear()
   }
 
   const updateTransaction = (index: number, field: keyof TransactionInput, value: string) => {
@@ -54,11 +53,11 @@ export const SendTransaction: React.FC<SendTransactionProps> = ({
       [field]: field === 'recipient' ? (value as Hex) : value,
     }
     setTransactions(newTransactions)
-    setResult(null)
+    clear()
   }
 
   const handleSend = async () => {
-    setResult(null)
+    clear()
 
     try {
       if (transactions.length === 1) {
@@ -72,10 +71,7 @@ export const SendTransaction: React.FC<SendTransactionProps> = ({
         const result = await executeCallData(callData)
 
         if (result.success) {
-          setResult({
-            success: true,
-            hash: result.txHash,
-          })
+          setSuccess(result.txHash)
 
           await fetchUserOps()
           onTransactionComplete()
@@ -95,10 +91,7 @@ export const SendTransaction: React.FC<SendTransactionProps> = ({
         const result = await executeCallData(callData)
 
         if (result.success) {
-          setResult({
-            success: true,
-            hash: result.txHash,
-          })
+          setSuccess(result.txHash)
 
           await fetchUserOps()
           onTransactionComplete()
@@ -108,10 +101,7 @@ export const SendTransaction: React.FC<SendTransactionProps> = ({
       }
     } catch (error) {
       console.error('Transaction failed:', error)
-      setResult({
-        success: false,
-        error: error instanceof Error ? error.message : 'Unknown error occurred',
-      })
+      setError(error instanceof Error ? error.message : 'Unknown error occurred')
     }
   }
 
@@ -121,7 +111,7 @@ export const SendTransaction: React.FC<SendTransactionProps> = ({
 
   const resetForm = () => {
     setTransactions([{ recipient: '', amount: '' }])
-    setResult(null)
+    clear()
   }
 
   if (!isDeployed) return null
@@ -190,7 +180,7 @@ export const SendTransaction: React.FC<SendTransactionProps> = ({
               variant="ghost"
               size="sm"
               className="absolute top-2 right-2 h-6 w-6 p-0 rounded-full"
-              onClick={() => setResult(null)}
+              onClick={clear}
             >
               <X className="h-3 w-3" />
             </Button>

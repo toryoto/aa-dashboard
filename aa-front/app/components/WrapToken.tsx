@@ -20,6 +20,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from './ui/t
 import { Badge } from './ui/badge'
 import { Alert, AlertDescription } from './ui/alert'
 import { useUserOp } from '../contexts/FetchUserOpContext'
+import { useTransactionResult } from '../hooks/useTransactionResult'
 
 export const WrapToken = ({
   isDeployed,
@@ -32,9 +33,7 @@ export const WrapToken = ({
   const [unwrapAmount, setUnwrapAmount] = useState('')
   const [balance, setBalance] = useState('0')
   const [activeTab, setActiveTab] = useState<'wrap' | 'unwrap'>('wrap')
-  const [txStatus, setTxStatus] = useState<{ status: 'success' | 'error'; message: string } | null>(
-    null
-  )
+  const { result, setSuccess, setError, clear } = useTransactionResult()
 
   const { aaAddress } = useAA()
 
@@ -65,15 +64,12 @@ export const WrapToken = ({
       return
     }
 
-    setTxStatus(null)
+    clear()
 
     try {
       const result = await deposit(wrapAmount)
       if (result.success) {
-        setTxStatus({
-          status: 'success',
-          message: `Successfully wrapped ${wrapAmount} ETH to WSEP`,
-        })
+        setSuccess(undefined, `Successfully wrapped ${wrapAmount} ETH to WSEP`)
         setWrapAmount('')
 
         await fetchUserOps()
@@ -84,10 +80,7 @@ export const WrapToken = ({
 
       if (onWrapComplete) onWrapComplete()
     } catch (error) {
-      setTxStatus({
-        status: 'error',
-        message: error instanceof Error ? error.message : 'Failed to wrap ETH',
-      })
+      setError(error instanceof Error ? error.message : 'Failed to wrap ETH')
     }
   }
 
@@ -106,15 +99,12 @@ export const WrapToken = ({
       return
     }
 
-    setTxStatus(null)
+    clear()
 
     try {
       const result = await withdraw(unwrapAmount)
       if (result.success) {
-        setTxStatus({
-          status: 'success',
-          message: `Successfully unwrapped ${unwrapAmount} WSEP to ETH`,
-        })
+        setSuccess(undefined, `Successfully unwrapped ${unwrapAmount} WSEP to ETH`)
         setUnwrapAmount('')
 
         await fetchUserOps()
@@ -124,10 +114,7 @@ export const WrapToken = ({
         throw new Error(result.error)
       }
     } catch (error) {
-      setTxStatus({
-        status: 'error',
-        message: error instanceof Error ? error.message : 'Failed to unwrap WSEP',
-      })
+      setError(error instanceof Error ? error.message : 'Failed to unwrap WSEP')
     }
   }
 
@@ -198,17 +185,17 @@ export const WrapToken = ({
       </div>
 
       <CardContent className="p-6 space-y-4">
-        {txStatus && (
+        {result && (
           <Alert
-            className={`${txStatus.status === 'success' ? 'bg-green-50 border-green-200 text-green-800' : 'bg-red-50 border-red-200 text-red-800'}`}
+            className={`${result.success ? 'bg-green-50 border-green-200 text-green-800' : 'bg-red-50 border-red-200 text-red-800'}`}
           >
             <div className="flex items-start gap-2">
-              {txStatus.status === 'success' ? (
+              {result.success ? (
                 <CheckCircle2 className="h-5 w-5 text-green-600 mt-0.5" />
               ) : (
                 <AlertCircle className="h-5 w-5 text-red-600 mt-0.5" />
               )}
-              <AlertDescription>{txStatus.message}</AlertDescription>
+              <AlertDescription>{result.success ? result.message : result.error}</AlertDescription>
             </div>
           </Alert>
         )}
