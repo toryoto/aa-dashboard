@@ -30,8 +30,14 @@ export const getUserOpController = async (req: Request, res: Response) => {
       }
     }
 
-    // セキュリティの観点からデフォルトの取得条件を指定する
+    // 入力値をサニタイズ
     const take = Math.min(Number(limit) || DEFAULT_LIMIT, MAX_LIMIT)
+    const ALLOWED_SORT_FIELDS = ['blockTimestamp', 'anotherField']
+    const ALLOWED_SORT_ORDERS = ['asc', 'desc']
+    const sortField =
+      sortBy && ALLOWED_SORT_FIELDS.includes(sortBy as string) ? sortBy : 'blockTimestamp'
+    const order =
+      sortOrder && ALLOWED_SORT_ORDERS.includes(sortOrder as string) ? sortOrder : 'desc'
 
     const userOps = await prisma.userOperation.findMany({
       where: {
@@ -45,9 +51,7 @@ export const getUserOpController = async (req: Request, res: Response) => {
             }
           : {}),
       },
-      orderBy: sortBy
-        ? { [sortBy as string]: sortOrder === 'desc' ? 'desc' : 'asc' }
-        : { blockTimestamp: 'desc' },
+      orderBy: { [sortField as string]: order },
       skip: offset ? Number(offset) : 0,
       take: take,
     })
