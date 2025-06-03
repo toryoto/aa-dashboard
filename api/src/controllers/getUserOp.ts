@@ -6,7 +6,7 @@ const MAX_LIMIT = 100
 
 export const getUserOpController = async (req: Request, res: Response) => {
   try {
-    const { address, dateRange, limit, offset, sortBy, sortOrder } = req.query
+    const { address, dateRange, limit, offset, sortBy, sortOrder, activity } = req.query
 
     if (!address) {
       res.status(400).json({
@@ -39,9 +39,23 @@ export const getUserOpController = async (req: Request, res: Response) => {
     const order =
       sortOrder && ALLOWED_SORT_ORDERS.includes(sortOrder as string) ? sortOrder : 'desc'
 
+    // Activity検索の条件を構築
+    let activityFilter = {}
+    if (activity && typeof activity === 'string') {
+      // Activity名でcalldataをフィルタリング（部分一致）
+      // Note: この実装はPostgreSQLのLIKE検索を使用
+      // より高度な検索が必要な場合は、全文検索エンジンを導入可能
+      activityFilter = {
+        calldata: {
+          contains: activity.toLowerCase(),
+        }
+      }
+    }
+
     const userOps = await prisma.userOperation.findMany({
       where: {
         sender: address as string,
+        ...activityFilter,
         ...(parsedDateRange && parsedDateRange.from && parsedDateRange.to
           ? {
               blockTimestamp: {

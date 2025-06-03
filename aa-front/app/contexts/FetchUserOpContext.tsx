@@ -15,7 +15,7 @@ interface UserOpContextType {
   userOps: UserOperationHistory[]
   loading: boolean
   error: string | null
-  fetchUserOps: (page?: number) => Promise<void>
+  fetchUserOps: (page?: number, activity?: string) => Promise<void>
   hasMore: boolean
   resetUserOps: () => void
 }
@@ -36,7 +36,7 @@ export function UserOpProvider({ children }: { children: ReactNode }) {
   }, [])
 
   const fetchUserOps = useCallback(
-    async (page?: number) => {
+    async (page?: number, activity?: string) => {
       if (!aaAddress || aaAddress === '0x') return
 
       const currentPage = page || 1
@@ -46,9 +46,17 @@ export function UserOpProvider({ children }: { children: ReactNode }) {
       setError(null)
 
       try {
-        const response = await fetch(
-          `/api/getUserOp?address=${aaAddress}&limit=${LIMIT}&offset=${offset}`
-        )
+        const searchParams = new URLSearchParams({
+          address: aaAddress,
+          limit: LIMIT.toString(),
+          offset: offset.toString(),
+        })
+
+        if (activity && activity.trim()) {
+          searchParams.append('activity', activity.trim())
+        }
+
+        const response = await fetch(`/api/getUserOp?${searchParams}`)
 
         if (!response.ok) {
           throw new Error('Failed to fetch UserOps')
