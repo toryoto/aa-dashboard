@@ -77,11 +77,14 @@ const UserOperationHistory: React.FC<UserOperationHistoryProps> = ({ isVisible, 
     fetchUserOps(1, '')
   }, [resetUserOps, fetchUserOps])
 
-  const handleKeyPress = useCallback((e: React.KeyboardEvent) => {
-    if (e.key === 'Enter') {
-      handleSearch()
-    }
-  }, [handleSearch])
+  const handleKeyPress = useCallback(
+    (e: React.KeyboardEvent) => {
+      if (e.key === 'Enter') {
+        handleSearch()
+      }
+    },
+    [handleSearch]
+  )
 
   const getOperationName = (calldata: string): string => {
     if (!calldata) return 'Unknown Operation'
@@ -133,14 +136,14 @@ const UserOperationHistory: React.FC<UserOperationHistoryProps> = ({ isVisible, 
       </div>
 
       {/* Search Section */}
-      <div className="px-4 pb-4 border-b border-slate-200">
+      <div className="px-4 pb-4 py-4 border-b border-slate-200">
         <div className="relative">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-slate-400" />
           <Input
             type="text"
-            placeholder="Search by activity (e.g., swap, deposit, transfer...)"
+            placeholder="Search by activity"
             value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
+            onChange={e => setSearchTerm(e.target.value)}
             onKeyPress={handleKeyPress}
             className="pl-10 pr-20"
           />
@@ -155,19 +158,14 @@ const UserOperationHistory: React.FC<UserOperationHistoryProps> = ({ isVisible, 
                 Clear
               </Button>
             )}
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={handleSearch}
-              className="h-6 px-2 text-xs"
-            >
+            <Button variant="ghost" size="sm" onClick={handleSearch} className="h-6 px-2 text-xs">
               Search
             </Button>
           </div>
         </div>
         {currentSearch && (
           <div className="mt-2 text-xs text-slate-600">
-            Searching for: <span className="font-medium">"{currentSearch}"</span>
+            Searching for: <span className="font-medium">{currentSearch}</span>
           </div>
         )}
       </div>
