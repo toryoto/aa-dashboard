@@ -10,6 +10,7 @@ import { SimpleAccountABI } from '../abi/simpleAccount'
 import { useCreateUserOperation } from './useCreateUserOperation'
 import { useEstimateUserOperationGas } from './useEstimateUserOperationGas'
 import { UserOperation } from '../lib/userOperationType'
+import { decodeCallData } from '../utils/decodeCallData'
 
 interface ExecuteOptions {
   initCode?: Hex
@@ -228,8 +229,8 @@ export function useUserOperationExecutor(aaAddress: Hex) {
 
         const result = await performExecution(userOp, updatedOptions)
 
-        // 処理完了を通知（モーダルを閉じる）
-        completeOperation(result.success)
+        const decodedData = decodeCallData(callData)
+        const functionName = decodedData.operations[decodedData.operations.length - 1].functionName
 
         if (result.success && result.userOpHash) {
           try {
@@ -249,6 +250,7 @@ export function useUserOperationExecutor(aaAddress: Hex) {
                 calldata: callData,
                 paymentMethod: userSelection.paymentOption,
                 initCode: options.initCode || '0x',
+                actionType: functionName,
               }),
             })
           } catch (saveError) {
@@ -256,6 +258,9 @@ export function useUserOperationExecutor(aaAddress: Hex) {
             // 保存が失敗してもユーザー操作には影響しないため、エラーは無視する
           }
         }
+
+        // 処理完了を通知（モーダルを閉じる）
+        completeOperation(result.success)
 
         return result
       } catch (error) {

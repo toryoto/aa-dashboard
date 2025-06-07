@@ -6,7 +6,7 @@ const MAX_LIMIT = 100
 
 export const getUserOpController = async (req: Request, res: Response) => {
   try {
-    const { address, dateRange, limit, offset, sortBy, sortOrder } = req.query
+    const { address, dateRange, limit, offset, sortBy, sortOrder, activity } = req.query
 
     if (!address) {
       res.status(400).json({
@@ -39,17 +39,29 @@ export const getUserOpController = async (req: Request, res: Response) => {
     const order =
       sortOrder && ALLOWED_SORT_ORDERS.includes(sortOrder as string) ? sortOrder : 'desc'
 
+    // Activity検索の条件を構築
+    let activityFilter = {}
+    if (activity && typeof activity === 'string') {
+      activityFilter = {
+        actionType: {
+          contains: activity.toLowerCase(),
+        },
+      }
+    }
+
     const userOps = await prisma.userOperation.findMany({
       where: {
         sender: address as string,
-        ...(parsedDateRange && parsedDateRange.from && parsedDateRange.to
-          ? {
-              blockTimestamp: {
-                gte: parsedDateRange.from,
-                lte: parsedDateRange.to,
-              },
-            }
-          : {}),
+        ...activityFilter,
+
+        // ...(parsedDateRange && parsedDateRange.from && parsedDateRange.to
+        //   ? {
+        //       blockTimestamp: {
+        //         gte: parsedDateRange.from,
+        //         lte: parsedDateRange.to,
+        //       },
+        //     }
+        //   : {}),
       },
       orderBy: { [sortField as string]: order },
       skip: offset ? Number(offset) : 0,

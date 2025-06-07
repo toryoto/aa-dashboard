@@ -1,8 +1,9 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react'
-import { Clock, Activity, X, ExternalLink } from 'lucide-react'
+import { Clock, Activity, X, ExternalLink, Search } from 'lucide-react'
 import { Button } from './ui/button'
 import { Badge } from './ui/badge'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from './ui/dialog'
+import { Input } from './ui/input'
 import { formatEther, Hex } from 'viem'
 import { useAA } from '../hooks/useAA'
 import { decodeCallData } from '../utils/decodeCallData'
@@ -19,6 +20,8 @@ const UserOperationHistory: React.FC<UserOperationHistoryProps> = ({ isVisible, 
   const [selectedOp, setSelectedOp] = useState<any | null>(null)
   const [showDetails, setShowDetails] = useState<boolean>(false)
   const [currentPage, setCurrentPage] = useState<number>(1)
+  const [searchTerm, setSearchTerm] = useState<string>('')
+  const [currentSearch, setCurrentSearch] = useState<string>('')
   const observer = useRef<IntersectionObserver | null>(null)
 
   const { userOps, loading, error, fetchUserOps, resetUserOps, hasMore } = useUserOp()
@@ -28,9 +31,9 @@ const UserOperationHistory: React.FC<UserOperationHistoryProps> = ({ isVisible, 
     if (isVisible && aaAddress) {
       resetUserOps()
       setCurrentPage(1)
-      fetchUserOps(1)
+      fetchUserOps(1, currentSearch)
     }
-  }, [isVisible, aaAddress, fetchUserOps, resetUserOps])
+  }, [isVisible, aaAddress, fetchUserOps, resetUserOps, currentSearch])
 
   // refを付与した最後の要素が画面に表示されたときに自動的に発火するメソッド
   // 毎レンダリングで関数インスタンスを作成すると、IntersectionObserverが再生成されるため、パフォーマンスの観点からcallbackにする
@@ -45,19 +48,43 @@ const UserOperationHistory: React.FC<UserOperationHistoryProps> = ({ isVisible, 
         if (entries[0]?.isIntersecting && hasMore) {
           const nextPage = currentPage + 1
           setCurrentPage(nextPage)
-          fetchUserOps(nextPage) // 次のページを取得
+          fetchUserOps(nextPage, currentSearch) // 次のページを取得
         }
       })
 
       if (node) observer.current.observe(node)
     },
-    [loading, hasMore, fetchUserOps, currentPage]
+    [loading, hasMore, fetchUserOps, currentPage, currentSearch]
   )
 
   const handleOpClick = (op: any) => {
     setSelectedOp(op)
     setShowDetails(true)
   }
+
+  const handleSearch = useCallback(() => {
+    setCurrentSearch(searchTerm)
+    resetUserOps()
+    setCurrentPage(1)
+    fetchUserOps(1, searchTerm)
+  }, [searchTerm, resetUserOps, fetchUserOps])
+
+  const handleClearSearch = useCallback(() => {
+    setSearchTerm('')
+    setCurrentSearch('')
+    resetUserOps()
+    setCurrentPage(1)
+    fetchUserOps(1, '')
+  }, [resetUserOps, fetchUserOps])
+
+  const handleKeyPress = useCallback(
+    (e: React.KeyboardEvent) => {
+      if (e.key === 'Enter') {
+        handleSearch()
+      }
+    },
+    [handleSearch]
+  )
 
   const getOperationName = (calldata: string): string => {
     if (!calldata) return 'Unknown Operation'
@@ -106,6 +133,41 @@ const UserOperationHistory: React.FC<UserOperationHistoryProps> = ({ isVisible, 
         <Button variant="ghost" size="sm" onClick={onClose} className="rounded-full h-8 w-8 p-0">
           <X className="h-4 w-4" />
         </Button>
+      </div>
+
+      {/* Search Section */}
+      <div className="px-4 pb-4 py-4 border-b border-slate-200">
+        <div className="relative">
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-slate-400" />
+          <Input
+            type="text"
+            placeholder="Search by activity"
+            value={searchTerm}
+            onChange={e => setSearchTerm(e.target.value)}
+            onKeyPress={handleKeyPress}
+            className="pl-10 pr-20"
+          />
+          <div className="absolute right-2 top-1/2 transform -translate-y-1/2 flex gap-1">
+            {currentSearch && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={handleClearSearch}
+                className="h-6 px-2 text-xs"
+              >
+                Clear
+              </Button>
+            )}
+            <Button variant="ghost" size="sm" onClick={handleSearch} className="h-6 px-2 text-xs">
+              Search
+            </Button>
+          </div>
+        </div>
+        {currentSearch && (
+          <div className="mt-2 text-xs text-slate-600">
+            Searching for: <span className="font-medium">{currentSearch}</span>
+          </div>
+        )}
       </div>
 
       <div className="p-4">
