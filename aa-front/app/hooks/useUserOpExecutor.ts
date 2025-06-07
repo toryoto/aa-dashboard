@@ -250,7 +250,7 @@ export function useUserOperationExecutor(aaAddress: Hex) {
                 calldata: callData,
                 paymentMethod: userSelection.paymentOption,
                 initCode: options.initCode || '0x',
-                actionType: functionName
+                actionType: functionName,
               }),
             })
           } catch (saveError) {

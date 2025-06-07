@@ -53,7 +53,7 @@ export const getUserOpController = async (req: Request, res: Response) => {
       where: {
         sender: address as string,
         ...activityFilter,
-        
+
         // ...(parsedDateRange && parsedDateRange.from && parsedDateRange.to
         //   ? {
         //       blockTimestamp: {

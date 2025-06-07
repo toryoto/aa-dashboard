@@ -43,7 +43,7 @@ export const saveUserOpController = async (req: Request, res: Response) => {
         paymentMethod,
         error,
         initCode,
-        actionType
+        actionType,
       },
     })
 
@@ -58,7 +58,7 @@ export const saveUserOpController = async (req: Request, res: Response) => {
       blockNumber: userOperation.blockNumber,
       blockTimestamp: userOperation.blockTimestamp,
       paymentMethod: userOperation.paymentMethod,
-      actionType: userOperation.actionType
+      actionType: userOperation.actionType,
     })
 
     res.status(201).json({
