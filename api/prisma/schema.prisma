@@ -38,6 +38,7 @@ model UserOperation {
   paymentMethod    String? // ERC20 Token or Paymaster or Native Token
   error            String?
   initCode         String?
+  actionType       String
   
   @@index([sender])
   @@index([transactionHash])

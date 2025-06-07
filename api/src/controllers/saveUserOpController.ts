@@ -16,6 +16,7 @@ export const saveUserOpController = async (req: Request, res: Response) => {
       paymentMethod,
       error,
       initCode,
+      actionType,
     } = req.body
 
     if (!userOpHash || !sender || !transactionHash) {
@@ -42,6 +43,7 @@ export const saveUserOpController = async (req: Request, res: Response) => {
         paymentMethod,
         error,
         initCode,
+        actionType
       },
     })
 
@@ -56,6 +58,7 @@ export const saveUserOpController = async (req: Request, res: Response) => {
       blockNumber: userOperation.blockNumber,
       blockTimestamp: userOperation.blockTimestamp,
       paymentMethod: userOperation.paymentMethod,
+      actionType: userOperation.actionType
     })
 
     res.status(201).json({

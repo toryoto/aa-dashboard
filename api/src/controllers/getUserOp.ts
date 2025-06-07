@@ -42,8 +42,6 @@ export const getUserOpController = async (req: Request, res: Response) => {
     // Activity検索の条件を構築
     let activityFilter = {}
     if (activity && typeof activity === 'string') {
-      // Activity名でcalldataをフィルタリング（部分一致）
-      // Note: この実装はPostgreSQLのLIKE検索を使用
       activityFilter = {
         calldata: {
           contains: activity.toLowerCase(),
