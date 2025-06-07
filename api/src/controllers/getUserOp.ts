@@ -43,7 +43,7 @@ export const getUserOpController = async (req: Request, res: Response) => {
     let activityFilter = {}
     if (activity && typeof activity === 'string') {
       activityFilter = {
-        calldata: {
+        actionType: {
           contains: activity.toLowerCase(),
         },
       }
@@ -53,14 +53,15 @@ export const getUserOpController = async (req: Request, res: Response) => {
       where: {
         sender: address as string,
         ...activityFilter,
-        ...(parsedDateRange && parsedDateRange.from && parsedDateRange.to
-          ? {
-              blockTimestamp: {
-                gte: parsedDateRange.from,
-                lte: parsedDateRange.to,
-              },
-            }
-          : {}),
+        
+        // ...(parsedDateRange && parsedDateRange.from && parsedDateRange.to
+        //   ? {
+        //       blockTimestamp: {
+        //         gte: parsedDateRange.from,
+        //         lte: parsedDateRange.to,
+        //       },
+        //     }
+        //   : {}),
       },
       orderBy: { [sortField as string]: order },
       skip: offset ? Number(offset) : 0,
