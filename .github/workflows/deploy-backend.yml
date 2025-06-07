@@ -44,6 +44,9 @@ jobs:
             --platform managed \
             --allow-unauthenticated \
             --port 4000 \
+            --min-instances 1 \
+            --timeout 300 \
+            --startup-cpu-boost \
             --update-env-vars "NODE_ENV=production,PAYMASTER_ADDRESS=0x415b4ceC5cf512CeDBE09C12081A0b75E13854Ff,POSTGRES_USER=${{ secrets.POSTGRES_USER }},POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD }},POSTGRES_DB=${{ secrets.POSTGRES_DB }}" \
             --update-secrets="ALCHEMY_API_KEY=ALCHEMY_API_KEY:latest,PAYMASTER_PRIVATE_KEY=PAYMASTER_PRIVATE_KEY:latest,FAUCET_ADMIN_PRIVATE_KEY=FAUCET_ADMIN_PRIVATE_KEY:latest,DATABASE_URL=DATABASE_URL:latest"
 
