@@ -13,3 +13,15 @@ export interface UserOperation {
   paymasterAndData: Hex
   signature: Hex
 }
+
+export interface PackedUserOperation {
+  sender: Hex
+  nonce: Hex
+  initCode: Hex
+  callData: Hex
+  accountGasLimits: Hex // packed: verificationGasLimit + callGasLimit
+  preVerificationGas: Hex
+  gasFees: Hex // packed: maxFeePerGas + maxPriorityFeePerGas
+  paymasterAndData: Hex // paymaster address + paymaster data
+  signature: Hex
+}
