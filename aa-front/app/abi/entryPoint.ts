@@ -1,3 +1,4 @@
+// v0.5のEntrypointなのでv0.8のABIに移行する必要がある
 export const entryPointAbi = [
   {
     inputs: [
