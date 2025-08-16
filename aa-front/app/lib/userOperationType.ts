@@ -31,3 +31,15 @@ export interface UserOperationV08 {
   paymasterData?: Hex
   signature: Hex
 }
+
+export interface PackedUserOperation {
+  sender: Hex
+  nonce: Hex
+  initCode: Hex
+  callData: Hex
+  accountGasLimits: Hex
+  preVerificationGas: Hex
+  gasFees: Hex
+  paymasterAndData: Hex
+  signature: Hex
+}

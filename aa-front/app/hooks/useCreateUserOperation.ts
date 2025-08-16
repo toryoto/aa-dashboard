@@ -70,12 +70,11 @@ export function useCreateUserOperation() {
 
         callData,
 
-        // gas/fee は未指定なら 0x0（後で estimate で埋め替え）
-        callGasLimit: callGasLimit ?? '0x0',
-        verificationGasLimit: verificationGasLimit ?? '0x0',
-        preVerificationGas: preVerificationGas ?? '0x0',
-        maxFeePerGas: maxFeePerGas ?? '0x0',
-        maxPriorityFeePerGas: maxPriorityFeePerGas ?? '0x0',
+        callGasLimit: callGasLimit ?? '0x186a0',              // 100000
+        verificationGasLimit: verificationGasLimit ?? '0x30d40',      // 200000
+        preVerificationGas: preVerificationGas ?? '0x2710',         // 10000
+        maxFeePerGas: maxFeePerGas ?? '0x3b9aca00',           // 1 gwei
+        maxPriorityFeePerGas: maxPriorityFeePerGas ?? '0x3b9aca00',   // 1 gwei
 
         // paymaster（使用時のみ分割して付与）
         ...(paymaster ? { paymaster } : {}),
@@ -86,6 +85,8 @@ export function useCreateUserOperation() {
         // 署名は後段で実署名に差し替え（estimate 時はダミー可）
         signature: '0x',
       }
+
+      console.log(userOp)
 
       return userOp
     },

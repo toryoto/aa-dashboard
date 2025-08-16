@@ -1,4 +1,3 @@
-// hooks/useUserOperationExecutor.ts (EntryPoint v0.8 / Unpacked)
 import { useState, useCallback } from 'react'
 import { encodeFunctionData, erc20Abi, Hex } from 'viem'
 import { bundlerClient } from '../utils/client'
@@ -233,7 +232,12 @@ export function useUserOperationExecutor(aaAddress: Hex) {
     async (callData: Hex, options: ExecuteOptions = {}): Promise<ExecuteResult> => {
       try {
         // 0) v0.8 Unpacked のベース userOp を作成（gas/fee は 0x0 のままでOK）
-        let userOp = await createUserOperation({ aaAddress, callData })
+        let userOp = await createUserOperation({
+          aaAddress,
+          callData,
+          factory: options.factory,
+          factoryData: options.factoryData
+        })
 
         // 1) ガス見積り（v0.8）
         let gasEstimateInfo:
@@ -258,6 +262,8 @@ export function useUserOperationExecutor(aaAddress: Hex) {
           console.warn('Gas estimation failed:', estimateError)
           // 見積もり失敗でも続行（UI 上のガス表示は空）
         }
+
+        console.log(66666, userOp)
 
         // 2) 確認モーダル（支払い方法選択）
         const userSelection = await showConfirmation(callData, gasEstimateInfo)

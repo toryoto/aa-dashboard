@@ -87,11 +87,11 @@ export function useEstimateUserOperationGas() {
 
       // 失敗時は入力をそのまま返す（費用は0）
       const fallback: GasEstimationResult = {
-        callGasLimit: userOp.callGasLimit as `0x${string}`,
-        verificationGasLimit: userOp.verificationGasLimit as `0x${string}`,
-        preVerificationGas: userOp.preVerificationGas as `0x${string}`,
-        maxFeePerGas: userOp.maxFeePerGas as `0x${string}`,
-        maxPriorityFeePerGas: userOp.maxPriorityFeePerGas as `0x${string}`,
+        callGasLimit: '0x186a0',              // 100000
+        verificationGasLimit: '0x30d40',      // 200000
+        preVerificationGas: '0x2710',         // 10000
+        maxFeePerGas: '0x3b9aca00',           // 1 gwei
+        maxPriorityFeePerGas: '0x3b9aca00',   // 1 gwei
         totalGasWei: 0n,
         totalGasEth: '0',
       }
