@@ -260,10 +260,7 @@ export function useUserOperationExecutor(aaAddress: Hex) {
           }
         } catch (estimateError) {
           console.warn('Gas estimation failed:', estimateError)
-          // 見積もり失敗でも続行（UI 上のガス表示は空）
         }
-
-        console.log(66666, userOp)
 
         // 2) 確認モーダル（支払い方法選択）
         const userSelection = await showConfirmation(callData, gasEstimateInfo)
@@ -283,7 +280,9 @@ export function useUserOperationExecutor(aaAddress: Hex) {
 
         // 5) 保存（任意）
         const decoded = decodeCallData(callData)
-        const functionName = decoded.operations[decoded.operations.length - 1].functionName
+        const functionName = decoded.operations.length > 0 
+          ? decoded.operations[decoded.operations.length - 1].functionName
+          : decoded.functionName || 'Unknown'
 
         if (result.success && result.userOpHash) {
           try {

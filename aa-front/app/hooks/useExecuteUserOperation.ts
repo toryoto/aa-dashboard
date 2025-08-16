@@ -1,18 +1,26 @@
-import { getContract, Hex } from 'viem'
-import { entryPointV08Abi } from '../abi/entryPointV0.8'
-import { ENTRY_POINT_V08_ADDRESS } from '../constants/addresses'
-import { bundlerClient, publicClient } from '../utils/client'
-import { UserOperationV08, PackedUserOperation } from '../lib/userOperationType'
-import { createPackedUserOperation } from '../utils/packUserOperation'
+import { useCallback } from 'react'
 import { useWalletClient } from 'wagmi'
+import { getContract, Hex } from 'viem'
+import { bundlerClient, publicClient } from '../utils/client'
+import { ENTRY_POINT_V08_ADDRESS } from '../constants/addresses'
+import { entryPointV08Abi } from '../abi/entryPointV0.8'
+import type { UserOperationV08 } from '../lib/userOperationType'
+import { useEstimateUserOperationGas } from './useEstimateUserOperationGas'
+import {
+  buildEip712Domain,
+  eip712Types,
+  toPackedUserOperation,
+  HEX_EMPTY,
+} from '../utils/aaV08'
 
 export function useExecuteUserOperation() {
   const { data: walletClient } = useWalletClient()
+  const { estimateUserOperationGas } = useEstimateUserOperationGas()
 
-  const executeBatch = async (userOperations: UserOperationV08[]): Promise<Hex[]> => {
-    if (!walletClient) {
-      return ['0x']
-    }
+  const executeBatch = useCallback(async (userOps: UserOperationV08[]) => {
+    if (!walletClient) throw new Error('Wallet client not ready')
+
+    const domain = await buildEip712Domain()
 
     const entryPoint = getContract({
       address: ENTRY_POINT_V08_ADDRESS,
@@ -20,56 +28,98 @@ export function useExecuteUserOperation() {
       client: publicClient,
     })
 
-    const signedUserOps = await Promise.all(
-      userOperations.map(async userOp => {
-        // UserOperationV08をPackedUserOperationに変換
-        const initCode = userOp.factory && userOp.factoryData 
-          ? `${userOp.factory}${userOp.factoryData.slice(2)}` as Hex
-          : '0x' as Hex
+    const finalized: UserOperationV08[] = []
 
-        const paymasterAndData = userOp.paymaster 
-          ? `${userOp.paymaster}${(userOp.paymasterVerificationGasLimit || '0x').slice(2)}${(userOp.paymasterPostOpGasLimit || '0x').slice(2)}${(userOp.paymasterData || '0x').slice(2)}` as Hex
-          : '0x' as Hex
+    for (const raw of userOps) {
+      const { userOpResult: est } = await estimateUserOperationGas(raw)
 
-        const packedUserOp = createPackedUserOperation({
-          sender: userOp.sender,
-          nonce: userOp.nonce,
-          initCode,
-          callData: userOp.callData,
-          verificationGasLimit: parseInt(userOp.verificationGasLimit, 16),
-          callGasLimit: parseInt(userOp.callGasLimit, 16),
-          preVerificationGas: parseInt(userOp.preVerificationGas, 16),
-          maxFeePerGas: parseInt(userOp.maxFeePerGas, 16),
-          maxPriorityFeePerGas: parseInt(userOp.maxPriorityFeePerGas, 16),
-          paymasterAndData,
-          signature: userOp.signature,
-        })
-
-        // PackedUserOperationでハッシュを取得
-        const userOpHashForSign = await entryPoint.read.getUserOpHash([packedUserOp])
-        const signature = await walletClient.signMessage({
-          message: { raw: userOpHashForSign as `0x${string}` },
-        })
-        return { ...userOp, signature }
+      const packedForSign = toPackedUserOperation({ ...est, signature: HEX_EMPTY })
+      const signature = await walletClient.signTypedData({
+        domain,
+        types: eip712Types,
+        primaryType: 'PackedUserOperation',
+        message: {
+          sender: packedForSign.sender,
+          nonce: BigInt(packedForSign.nonce),
+          initCode: packedForSign.initCode,
+          callData: packedForSign.callData,
+          accountGasLimits: packedForSign.accountGasLimits,
+          preVerificationGas: BigInt(packedForSign.preVerificationGas),
+          gasFees: packedForSign.gasFees,
+          paymasterAndData: packedForSign.paymasterAndData,
+        },
       })
-    )
 
-    const userOpHashes = await Promise.all(
-      signedUserOps.map(async (userOp) => {
-        return (await (bundlerClient as any).request({
-          method: 'eth_sendUserOperation',
-          params: [userOp, ENTRY_POINT_V08_ADDRESS],
-        })) as Hex
+      // Optional: re-estimate with the signature; if changed, re-sign
+      let reGas: Partial<Pick<UserOperationV08, 'callGasLimit'|'verificationGasLimit'|'preVerificationGas'>> = {}
+      try {
+        reGas = await (bundlerClient as any).request({
+          method: 'eth_estimateUserOperationGas',
+          params: [{ ...est, signature }, ENTRY_POINT_V08_ADDRESS],
+        })
+      } catch {
+        // If bundler gives nothing, keep values as-is (or implement custom pvg buffer here)
+      }
+
+      const changed =
+        (reGas.callGasLimit && reGas.callGasLimit !== est.callGasLimit) ||
+        (reGas.verificationGasLimit && reGas.verificationGasLimit !== est.verificationGasLimit) ||
+        (reGas.preVerificationGas && reGas.preVerificationGas !== est.preVerificationGas)
+
+      let finalOp: UserOperationV08
+      if (changed) {
+        const est2 = {
+          ...est,
+          callGasLimit: reGas.callGasLimit ?? est.callGasLimit,
+          verificationGasLimit: reGas.verificationGasLimit ?? est.verificationGasLimit,
+          preVerificationGas: reGas.preVerificationGas ?? est.preVerificationGas,
+        }
+        const packed2 = toPackedUserOperation({ ...est2, signature: HEX_EMPTY })
+        const signature2 = await walletClient.signTypedData({
+          domain,
+          types: eip712Types,
+          primaryType: 'PackedUserOperation',
+          message: {
+            sender: packed2.sender,
+            nonce: BigInt(packed2.nonce),
+            initCode: packed2.initCode,
+            callData: packed2.callData,
+            accountGasLimits: packed2.accountGasLimits,
+            preVerificationGas: BigInt(packed2.preVerificationGas),
+            gasFees: packed2.gasFees,
+            paymasterAndData: packed2.paymasterAndData,
+          },
+        })
+        finalOp = { ...est2, signature: signature2 as Hex }
+      } else {
+        finalOp = { ...est, signature: signature as Hex }
+      }
+
+      try {
+        const packedFinal = toPackedUserOperation(finalOp)
+        const userOpHash = await entryPoint.read.getUserOpHash([packedFinal])
+        console.debug('UserOpHash(v0.8/EIP-712):', userOpHash)
+      } catch {}
+
+      finalized.push(finalOp)
+    }
+
+    const hashes: Hex[] = []
+    for (const op of finalized) {
+      const hash = await (bundlerClient as any).request({
+        method: 'eth_sendUserOperation',
+        params: [op, ENTRY_POINT_V08_ADDRESS],
       })
-    )
+      hashes.push(hash as Hex)
+    }
 
-    return userOpHashes
-  }
+    return hashes
+  }, [walletClient, estimateUserOperationGas])
 
-  const execute = async (userOperation: UserOperationV08): Promise<Hex> => {
+  const execute = useCallback(async (userOperation: UserOperationV08) => {
     const [hash] = await executeBatch([userOperation])
     return hash
-  }
+  }, [executeBatch])
 
   return { execute, executeBatch }
 }
