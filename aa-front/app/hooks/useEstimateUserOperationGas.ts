@@ -33,8 +33,8 @@ export function useEstimateUserOperationGas() {
 
       const dummyUserOp: UserOperationV08 = {
         ...userOp,
-        maxFeePerGas: (`0x${maxFeePerGasBI.toString(16)}`) as `0x${string}`,
-        maxPriorityFeePerGas: (`0x${maxPriorityFeePerGasBI.toString(16)}`) as `0x${string}`,
+        maxFeePerGas: `0x${maxFeePerGasBI.toString(16)}` as `0x${string}`,
+        maxPriorityFeePerGas: `0x${maxPriorityFeePerGasBI.toString(16)}` as `0x${string}`,
         signature: buildDummySignature(),
       }
 
@@ -51,17 +51,21 @@ export function useEstimateUserOperationGas() {
         ? HEX_ZERO
         : getValidGasValue(gasEstimation?.callGasLimit, DEFAULT_CALL_GAS_LIMIT)
 
-      const verificationGasLimitHex: `0x${string}` =
-        getValidGasValue(gasEstimation?.verificationGasLimit, DEFAULT_VERIFICATION_GAS_LIMIT)
+      const verificationGasLimitHex: `0x${string}` = getValidGasValue(
+        gasEstimation?.verificationGasLimit,
+        DEFAULT_VERIFICATION_GAS_LIMIT
+      )
 
-      const preVerificationGasHex: `0x${string}` =
-        getValidGasValue(gasEstimation?.preVerificationGas, DEFAULT_PRE_VERIFICATION_GAS)
+      const preVerificationGasHex: `0x${string}` = getValidGasValue(
+        gasEstimation?.preVerificationGas,
+        DEFAULT_PRE_VERIFICATION_GAS
+      )
 
       const { totalGasWei, totalGasEth } = calcTotals(
         callGasLimitHex,
         verificationGasLimitHex,
         preVerificationGasHex,
-        maxFeePerGasBI,
+        maxFeePerGasBI
       )
 
       const userOpResult: UserOperationV08 = {
@@ -69,8 +73,8 @@ export function useEstimateUserOperationGas() {
         callGasLimit: callGasLimitHex,
         verificationGasLimit: verificationGasLimitHex,
         preVerificationGas: preVerificationGasHex,
-        maxFeePerGas: (`0x${maxFeePerGasBI.toString(16)}`) as `0x${string}`,
-        maxPriorityFeePerGas: (`0x${maxPriorityFeePerGasBI.toString(16)}`) as `0x${string}`,
+        maxFeePerGas: `0x${maxFeePerGasBI.toString(16)}` as `0x${string}`,
+        maxPriorityFeePerGas: `0x${maxPriorityFeePerGasBI.toString(16)}` as `0x${string}`,
       }
 
       const result: GasEstimationResult = {

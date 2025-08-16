@@ -70,11 +70,11 @@ export function useCreateUserOperation() {
 
         callData,
 
-        callGasLimit: callGasLimit ?? '0x186a0',              // 100000
-        verificationGasLimit: verificationGasLimit ?? '0x30d40',      // 200000
-        preVerificationGas: preVerificationGas ?? '0x2710',         // 10000
-        maxFeePerGas: maxFeePerGas ?? '0x3b9aca00',           // 1 gwei
-        maxPriorityFeePerGas: maxPriorityFeePerGas ?? '0x3b9aca00',   // 1 gwei
+        callGasLimit: callGasLimit ?? '0x186a0', // 100000
+        verificationGasLimit: verificationGasLimit ?? '0x30d40', // 200000
+        preVerificationGas: preVerificationGas ?? '0x2710', // 10000
+        maxFeePerGas: maxFeePerGas ?? '0x3b9aca00', // 1 gwei
+        maxPriorityFeePerGas: maxPriorityFeePerGas ?? '0x3b9aca00', // 1 gwei
 
         // paymaster（使用時のみ分割して付与）
         ...(paymaster ? { paymaster } : {}),

@@ -13,9 +13,9 @@ import type { UserOperationV08 as UserOperation } from '../lib/userOperationType
 import { decodeCallData } from '../utils/decodeCallData'
 
 interface ExecuteOptions {
-  factory?: Hex;
-  factoryData?: Hex;
-  
+  factory?: Hex
+  factoryData?: Hex
+
   waitForReceipt?: boolean
   timeout?: number
   usePaymaster?: boolean
@@ -236,7 +236,7 @@ export function useUserOperationExecutor(aaAddress: Hex) {
           aaAddress,
           callData,
           factory: options.factory,
-          factoryData: options.factoryData
+          factoryData: options.factoryData,
         })
 
         // 1) ガス見積り（v0.8）
@@ -280,9 +280,10 @@ export function useUserOperationExecutor(aaAddress: Hex) {
 
         // 5) 保存（任意）
         const decoded = decodeCallData(callData)
-        const functionName = decoded.operations.length > 0 
-          ? decoded.operations[decoded.operations.length - 1].functionName
-          : decoded.functionName || 'Unknown'
+        const functionName =
+          decoded.operations.length > 0
+            ? decoded.operations[decoded.operations.length - 1].functionName
+            : decoded.functionName || 'Unknown'
 
         if (result.success && result.userOpHash) {
           try {

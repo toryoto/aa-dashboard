@@ -16,7 +16,9 @@ interface UserOpConfirmationContextType {
   completeOperation: (success: boolean) => void
 }
 
-const UserOpConfirmationContext = createContext<UserOpConfirmationContextType | undefined>(undefined)
+const UserOpConfirmationContext = createContext<UserOpConfirmationContextType | undefined>(
+  undefined
+)
 
 export function UserOpConfirmationProvider({ children }: { children: ReactNode }) {
   const [isModalOpen, setIsModalOpen] = useState(false)

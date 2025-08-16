@@ -15,27 +15,26 @@ export const isValidNonZeroHex = (value: unknown): value is `0x${string}` => {
   if (typeof value !== 'string') return false
   if (value === HEX_ZERO || value === HEX_EMPTY) return false
   try {
-    return BigInt(value) > 0n 
-  } catch { 
-    return false 
+    return BigInt(value) > 0n
+  } catch {
+    return false
   }
 }
 
 export const getValidGasValue = (value: unknown, fallback: `0x${string}`): `0x${string}` =>
   isValidNonZeroHex(value) ? (value as `0x${string}`) : fallback
 
-export const buildDummySignature = (): `0x${string}` => (
+export const buildDummySignature = (): `0x${string}` =>
   [
     '0xfffffffffffffffffffffffffffffff0000000000000000000000000000000007',
     'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa1c',
   ].join('') as `0x${string}`
-)
 
 export const calcTotals = (
   callGas: `0x${string}`,
   verificationGas: `0x${string}`,
   preVerificationGas: `0x${string}`,
-  maxFeePerGasBI: bigint,
+  maxFeePerGasBI: bigint
 ) => {
   const call = BigInt(callGas)
   const verify = BigInt(verificationGas)
@@ -49,37 +48,36 @@ export const calcTotals = (
 // v0.8: pack two uint128 -> bytes32 (high<<128 | low)
 export const packUintsToBytes32 = (high: bigint, low: bigint): Hex => {
   const packed = (high << 128n) | (low & ((1n << 128n) - 1n))
-  return (`0x${packed.toString(16).padStart(64, '0')}`) as Hex
+  return `0x${packed.toString(16).padStart(64, '0')}` as Hex
 }
 
-export const buildEip712Domain = async () => ({
-  name: 'ERC4337',
-  version: '1',
-  chainId: await publicClient.getChainId(),
-  verifyingContract: ENTRY_POINT_V08_ADDRESS as `0x${string}`,
-} as const)
+export const buildEip712Domain = async () =>
+  ({
+    name: 'ERC4337',
+    version: '1',
+    chainId: await publicClient.getChainId(),
+    verifyingContract: ENTRY_POINT_V08_ADDRESS as `0x${string}`,
+  }) as const
 
 export const eip712Types = {
   PackedUserOperation: [
-    { name: 'sender',             type: 'address' },
-    { name: 'nonce',              type: 'uint256' },
-    { name: 'initCode',           type: 'bytes'   },
-    { name: 'callData',           type: 'bytes'   },
-    { name: 'accountGasLimits',   type: 'bytes32' },
+    { name: 'sender', type: 'address' },
+    { name: 'nonce', type: 'uint256' },
+    { name: 'initCode', type: 'bytes' },
+    { name: 'callData', type: 'bytes' },
+    { name: 'accountGasLimits', type: 'bytes32' },
     { name: 'preVerificationGas', type: 'uint256' },
-    { name: 'gasFees',            type: 'bytes32' },
-    { name: 'paymasterAndData',   type: 'bytes'   },
+    { name: 'gasFees', type: 'bytes32' },
+    { name: 'paymasterAndData', type: 'bytes' },
   ],
 } as const
 
 export const buildPaymasterAndData = (u: UserOperationV08): Hex => {
   return u.paymaster
-    ? (
-        u.paymaster +
+    ? ((u.paymaster +
         (u.paymasterVerificationGasLimit ?? '0x').slice(2) +
         (u.paymasterPostOpGasLimit ?? '0x').slice(2) +
-        (u.paymasterData ?? '0x').slice(2)
-      ) as Hex
+        (u.paymasterData ?? '0x').slice(2)) as Hex)
     : (HEX_EMPTY as Hex)
 }
 
@@ -93,9 +91,10 @@ export const toPackedUserOperation = (u: UserOperationV08): PackedUserOperation 
   const accountGasLimits = packUintsToBytes32(verificationGasLimit, callGasLimit)
   const gasFees = packUintsToBytes32(maxPriorityFeePerGas, maxFeePerGas)
 
-  const initCode = (u.factory && u.factoryData)
-    ? (`${u.factory}${u.factoryData.slice(2)}` as Hex)
-    : (HEX_EMPTY as Hex)
+  const initCode =
+    u.factory && u.factoryData
+      ? (`${u.factory}${u.factoryData.slice(2)}` as Hex)
+      : (HEX_EMPTY as Hex)
 
   const paymasterAndData = buildPaymasterAndData(u)
 
@@ -105,7 +104,7 @@ export const toPackedUserOperation = (u: UserOperationV08): PackedUserOperation 
     initCode,
     callData: u.callData ?? (HEX_EMPTY as Hex),
     accountGasLimits,
-    preVerificationGas: (`0x${preVerificationGas.toString(16)}`) as Hex,
+    preVerificationGas: `0x${preVerificationGas.toString(16)}` as Hex,
     gasFees,
     paymasterAndData,
     signature: (u.signature ?? HEX_EMPTY) as Hex,
