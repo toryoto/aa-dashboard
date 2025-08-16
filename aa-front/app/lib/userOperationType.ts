@@ -14,14 +14,20 @@ export interface UserOperation {
   signature: Hex
 }
 
-export interface PackedUserOperation {
+export interface UserOperationV08 {
   sender: Hex
   nonce: Hex
-  initCode: Hex
+  factory?: Hex
+  factoryData?: Hex
   callData: Hex
-  accountGasLimits: Hex // packed: verificationGasLimit + callGasLimit
+  callGasLimit: Hex
+  verificationGasLimit: Hex
   preVerificationGas: Hex
-  gasFees: Hex // packed: maxFeePerGas + maxPriorityFeePerGas
-  paymasterAndData: Hex // paymaster address + paymaster data
+  maxFeePerGas: Hex
+  maxPriorityFeePerGas: Hex
+  paymaster?: Hex
+  paymasterVerificationGasLimit?: Hex
+  paymasterPostOpGasLimit?: Hex
+  paymasterData?: Hex
   signature: Hex
 }

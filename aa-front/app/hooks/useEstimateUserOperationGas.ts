@@ -1,81 +1,101 @@
+// hooks/useEstimateUserOperationGas.ts
 import { useCallback } from 'react'
 import { bundlerClient, publicClient } from '../utils/client'
-import { ENTRY_POINT_ADDRESS } from '../constants/addresses'
-import { UserOperation } from '../lib/userOperationType'
-import { formatEther, parseGwei } from 'viem'
+import { ENTRY_POINT_V08_ADDRESS } from '../constants/addresses'
+import type { UserOperationV08 } from '../lib/userOperationType'
+import { formatEther } from 'viem'
 
 export interface GasEstimationResult {
-  callGasLimit: string
-  verificationGasLimit: string
-  preVerificationGas: string
-  maxFeePerGas: string
-  maxPriorityFeePerGas: string
+  callGasLimit: `0x${string}`
+  verificationGasLimit: `0x${string}`
+  preVerificationGas: `0x${string}`
+  maxFeePerGas: `0x${string}`
+  maxPriorityFeePerGas: `0x${string}`
   totalGasWei: bigint
   totalGasEth: string
 }
 
 export function useEstimateUserOperationGas() {
-  const estimateUserOperationGas = useCallback(async (userOp: UserOperation) => {
+  const estimateUserOperationGas = useCallback(async (userOp: UserOperationV08) => {
     try {
-      // ガス料金の取得
-      const feeData = await publicClient.estimateFeesPerGas()
-      const maxFeePerGas = feeData.maxFeePerGas
-      const maxPriorityFeePerGas = feeData.maxPriorityFeePerGas
+      // --- 1) ネットワーク手数料の取得（BigInt） ---
+      const fees = await publicClient.estimateFeesPerGas()
+      const maxFeePerGasBI = fees.maxFeePerGas ?? 0n
+      const maxPriorityFeePerGasBI = fees.maxPriorityFeePerGas ?? 0n
 
-      // ダミー署名の設定（シミュレーション用）
-      const dummyUserOp = {
+      // --- 2) ダミー署名をセットして見積り ---
+      // v0.8 の多くの bundler 実装は署名の妥当長チェックのみ行うため、ダミーでOK
+      const dummySig =
+        '0xfffffffffffffffffffffffffffffff0000000000000000000000000000000007aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa1c' as const
+
+      const dummyUserOp: UserOperationV08 = {
         ...userOp,
-        maxFeePerGas: `0x${maxFeePerGas.toString(16)}` as `0x${string}`,
-        maxPriorityFeePerGas: `0x${maxPriorityFeePerGas.toString(16)}` as `0x${string}`,
-        signature:
-          '0xfffffffffffffffffffffffffffffff0000000000000000000000000000000007aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa1c' as `0x${string}`,
+        maxFeePerGas: `0x${maxFeePerGasBI.toString(16)}`,
+        maxPriorityFeePerGas: `0x${maxPriorityFeePerGasBI.toString(16)}`,
+        signature: dummySig,
       }
 
-      // eth_estimateUserOperationGasの呼び出し
-      const gasEstimation = await bundlerClient.request({
-        jsonrpc: '2.0',
+      // --- 3) Bundler でガス見積り（Unpacked + v0.8 EP）---
+      // NOTE: viem の low-level request を使う（bundlerActions を使う場合は .estimateUserOperationGas が同義）
+      const gasEstimation = await (bundlerClient as any).request({
         method: 'eth_estimateUserOperationGas',
-        params: [dummyUserOp, ENTRY_POINT_ADDRESS],
+        params: [dummyUserOp, ENTRY_POINT_V08_ADDRESS],
       })
 
-      // ガス値をBigIntに変換
-      const callGasLimit = BigInt(gasEstimation?.callGasLimit || userOp.callGasLimit)
-      const verificationGasLimit = BigInt(
-        gasEstimation?.verificationGasLimit || userOp.verificationGasLimit
-      )
-      const preVerificationGas = BigInt(
-        gasEstimation?.preVerificationGas || userOp.preVerificationGas
-      )
+      // 返却が hex 文字列で来る想定。未返却なら元値を用いる
+      const callGasLimitHex =
+        (gasEstimation?.callGasLimit as `0x${string}`) ?? (userOp.callGasLimit as `0x${string}`)
+      const verificationGasLimitHex =
+        (gasEstimation?.verificationGasLimit as `0x${string}`) ??
+        (userOp.verificationGasLimit as `0x${string}`)
+      const preVerificationGasHex =
+        (gasEstimation?.preVerificationGas as `0x${string}`) ??
+        (userOp.preVerificationGas as `0x${string}`)
 
-      // 合計ガス使用量の計算
-      const totalGas = callGasLimit + verificationGasLimit + preVerificationGas
+      // --- 4) 合計コスト計算 ---
+      const callGas = BigInt(callGasLimitHex)
+      const verificationGas = BigInt(verificationGasLimitHex)
+      const preVerificationGas = BigInt(preVerificationGasHex)
+      const totalGas = callGas + verificationGas + preVerificationGas
 
-      // 最大の合計ガス料金（Wei単位）
-      const totalGasWei = totalGas * maxFeePerGas
-
-      // ETH単位に変換（表示用）
+      const totalGasWei = totalGas * maxFeePerGasBI
       const totalGasEth = formatEther(totalGasWei)
 
-      const userOpResult = {
+      // --- 5) userOp を上書きして返す（署名はダミーのまま）---
+      const userOpResult: UserOperationV08 = {
         ...userOp,
-        callGasLimit: gasEstimation?.callGasLimit || userOp.callGasLimit,
-        verificationGasLimit: gasEstimation?.verificationGasLimit || userOp.verificationGasLimit,
-        preVerificationGas: gasEstimation?.preVerificationGas || userOp.preVerificationGas,
-        maxFeePerGas: `0x${maxFeePerGas.toString(16)}`,
-        maxPriorityFeePerGas: `0x${maxPriorityFeePerGas.toString(16)}`,
+        callGasLimit: callGasLimitHex,
+        verificationGasLimit: verificationGasLimitHex,
+        preVerificationGas: preVerificationGasHex,
+        maxFeePerGas: `0x${maxFeePerGasBI.toString(16)}`,
+        maxPriorityFeePerGas: `0x${maxPriorityFeePerGasBI.toString(16)}`,
       }
 
-      return {
-        userOpResult,
+      const result: GasEstimationResult = {
+        callGasLimit: callGasLimitHex,
+        verificationGasLimit: verificationGasLimitHex,
+        preVerificationGas: preVerificationGasHex,
+        maxFeePerGas: userOpResult.maxFeePerGas,
+        maxPriorityFeePerGas: userOpResult.maxPriorityFeePerGas,
+        totalGasWei,
         totalGasEth,
       }
+
+      return { userOpResult, gas: result }
     } catch (error) {
       console.warn('Gas estimation failed, using default values:', error)
-      return {
-        userOpResult: userOp,
-        totalGasWei: BigInt(0),
+
+      // 失敗時は入力をそのまま返す（費用は0）
+      const fallback: GasEstimationResult = {
+        callGasLimit: userOp.callGasLimit as `0x${string}`,
+        verificationGasLimit: userOp.verificationGasLimit as `0x${string}`,
+        preVerificationGas: userOp.preVerificationGas as `0x${string}`,
+        maxFeePerGas: userOp.maxFeePerGas as `0x${string}`,
+        maxPriorityFeePerGas: userOp.maxPriorityFeePerGas as `0x${string}`,
+        totalGasWei: 0n,
         totalGasEth: '0',
       }
+      return { userOpResult: userOp, gas: fallback }
     }
   }, [])
 
