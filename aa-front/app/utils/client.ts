@@ -12,6 +12,6 @@ export const publicClient = createPublicClient({
 export const bundlerClient = createClient({
   chain: sepolia,
   transport: http(
-    `https://api.pimlico.io/v1/sepolia/rpc?apikey=${process.env.NEXT_PUBLIC_PIMLICO_API_KEY}`
+    `https://api.pimlico.io/v2/sepolia/rpc?apikey=${process.env.NEXT_PUBLIC_PIMLICO_API_KEY}`
   ),
 }).extend(bundlerActions)

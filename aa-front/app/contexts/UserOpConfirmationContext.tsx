@@ -1,12 +1,14 @@
-import React, { createContext, useState, useContext, ReactNode } from 'react'
+import React, { createContext, useState, useContext, ReactNode, useEffect, useRef } from 'react'
 import { UserOpConfirmationModal, UserOpSelection } from '../components/UserOpConfirmationModal'
 import { Hex } from 'viem'
 
 interface GasEstimateInfo {
   totalGasEth: string
-  callGasLimit: string
-  verificationGasLimit: string
-  preVerificationGas: string
+  callGasLimit: Hex
+  verificationGasLimit: Hex
+  preVerificationGas: Hex
+  maxFeePerGas?: Hex
+  maxPriorityFeePerGas?: Hex
 }
 
 interface UserOpConfirmationContextType {
@@ -23,60 +25,68 @@ export function UserOpConfirmationProvider({ children }: { children: ReactNode }
   const [isProcessing, setIsProcessing] = useState(false)
   const [callData, setCallData] = useState<Hex | null>(null)
   const [gasEstimate, setGasEstimate] = useState<GasEstimateInfo | undefined>(undefined)
-  const [confirmResolve, setConfirmResolve] = useState<((value: UserOpSelection) => void) | null>(
-    null
-  )
-  const [confirmReject, setConfirmReject] = useState<((reason?: any) => void) | null>(null)
 
-  // 確認モーダルを表示し、ユーザーの選択を待つasync関数
-  // このメソッドが終了するのはユーザが支払い方法を選択し、handleConfirmが実行され、Promiseが解決された後
+  const confirmResolveRef = useRef<((value: UserOpSelection) => void) | null>(null)
+  const confirmRejectRef = useRef<((reason?: any) => void) | null>(null)
+
+  // unmount 時に pending Promise を必ず reject（リーク/ハング防止）
+  useEffect(() => {
+    return () => {
+      if (confirmRejectRef.current) {
+        confirmRejectRef.current(new Error('Confirmation modal unmounted'))
+      }
+      confirmResolveRef.current = null
+      confirmRejectRef.current = null
+    }
+  }, [])
+
   const showConfirmation = async (
-    callData: Hex,
-    gasEstimate?: GasEstimateInfo
+    callDataIn: Hex,
+    gasEstimateIn?: GasEstimateInfo
   ): Promise<UserOpSelection> => {
-    setCallData(callData)
+    setCallData(callDataIn)
+    setGasEstimate(gasEstimateIn)
     setIsModalOpen(true)
-    setGasEstimate(gasEstimate)
+    setIsProcessing(false)
 
-    // 新しいPromiseを作成し、resolve/reject関数を状態として保存
-    // ユーザの入力を非同期処理の途中に挟むためにはPromiseを使用する必要がある。（executeCallData内で使用するため）
-    // resolveやrejectを直接呼び出すのではなく、後で引数を渡して呼び出すための関数を設定する
+    // 既存の pending があれば片付ける（多重起動対策）
+    if (confirmRejectRef.current) {
+      confirmRejectRef.current(new Error('New confirmation opened before previous resolved'))
+      confirmResolveRef.current = null
+      confirmRejectRef.current = null
+    }
+
     return new Promise<UserOpSelection>((resolve, reject) => {
-      // resolveやrejectは、Promiseの標準的な関数で、引数を1つ受け取ることができる
-      setConfirmResolve(() => resolve)
-      setConfirmReject(() => reject)
+      confirmResolveRef.current = resolve
+      confirmRejectRef.current = reject
     })
   }
 
-  // UserOp処理完了時に呼び出される関数
   const completeOperation = (_success: boolean) => {
     setIsProcessing(false)
     setIsModalOpen(false)
-    setConfirmResolve(null)
-    setConfirmReject(null)
-  }
-
-  // ユーザがモーダルでConfirmボタンを押すと、保存していたconfirmResolveを選択内容を引数として実行する
-  const handleConfirm = (selection: UserOpSelection) => {
-    if (!confirmResolve) return
-    setIsProcessing(true)
-    // Promiseの解決値として selectionが指定される
-    // 例：await showConfirmation(callData) で止まっていた処理がselectionを受け取って先に進む
-    confirmResolve(selection)
-  }
-
-  // キャンセルボタンがクリックされたときの処理
-  const handleClose = () => {
-    if (isProcessing) return
-
-    if (confirmReject) {
-      confirmReject(new Error('User cancelled the operation'))
-    }
-
-    setIsModalOpen(false)
+    confirmResolveRef.current = null
+    confirmRejectRef.current = null
     setCallData(null)
-    setConfirmResolve(null)
-    setConfirmReject(null)
+    setGasEstimate(undefined)
+  }
+
+  const handleConfirm = (selection: UserOpSelection) => {
+    if (!confirmResolveRef.current) return
+    setIsProcessing(true) // 実行中は閉じられないように
+    confirmResolveRef.current(selection)
+  }
+
+  const handleClose = () => {
+    if (isProcessing) return // 実行中は閉じない
+    if (confirmRejectRef.current) {
+      confirmRejectRef.current(new Error('User cancelled the operation'))
+    }
+    setIsModalOpen(false)
+    confirmResolveRef.current = null
+    confirmRejectRef.current = null
+    setCallData(null)
+    setGasEstimate(undefined)
   }
 
   return (

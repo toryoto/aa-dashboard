@@ -1,6 +1,6 @@
 import { createContext, useState, useEffect, ReactNode } from 'react'
 import { useAccount, useWalletClient } from 'wagmi'
-import { concat, encodeFunctionData, getContract, Hex } from 'viem'
+import { encodeFunctionData, getContract, Hex } from 'viem'
 import { accountFactoryAbi } from '../abi/accountFactory'
 import { FACTORY_ADDRESS } from '../constants/addresses'
 import { publicClient } from '../utils/client'
@@ -26,7 +26,6 @@ export function AAProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     const initializeAA = async () => {
       if (!walletClient || !address) return
-
       setLoading(true)
       try {
         const factory = getContract({
@@ -37,35 +36,31 @@ export function AAProvider({ children }: { children: ReactNode }) {
 
         const salt = 0
         const predictedAddress = (await factory.read.getAddress([address, BigInt(salt)])) as Hex
-
         setAaAddress(predictedAddress)
 
         const code = await publicClient.getCode({ address: predictedAddress })
-        setIsDeployed(Boolean(code?.length))
+        setIsDeployed(!!code && code !== '0x')
       } catch (error) {
-        console.error('Error:', error)
+        console.error('AA init error:', error)
       } finally {
         setLoading(false)
       }
     }
-
     initializeAA()
   }, [walletClient, address])
 
   const deployAccount = async () => {
     if (!address || !walletClient || !aaAddress) return
     try {
-      const initCode = concat([
-        FACTORY_ADDRESS,
-        encodeFunctionData({
-          abi: accountFactoryAbi,
-          functionName: 'createAccount',
-          args: [address, 0],
-        }),
-      ])
-      await executeCallData('0x', { initCode })
+      const factory = FACTORY_ADDRESS
+      const factoryData = encodeFunctionData({
+        abi: accountFactoryAbi,
+        functionName: 'createAccount',
+        args: [address, 0],
+      })
+
+      await executeCallData('0x', { factory: factory as Hex, factoryData: factoryData as Hex })
       setIsDeployed(true)
-      return
     } catch (error) {
       console.error('Deploy error:', error)
     }
