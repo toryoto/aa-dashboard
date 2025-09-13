@@ -1,53 +1,53 @@
-name: Deploy Express.js API to Cloud Run
+# name: Deploy Express.js API to Cloud Run
 
-on:
-  push:
-    branches:
-      - main
-      - develop
-  pull_request:
-    branches: [main, master, develop]
+# on:
+#   push:
+#     branches:
+#       - main
+#       - develop
+#   pull_request:
+#     branches: [main, master, develop]
 
-jobs:
-  deploy:
-    name: Deploy to Cloud Run
-    runs-on: ubuntu-latest
+# jobs:
+#   deploy:
+#     name: Deploy to Cloud Run
+#     runs-on: ubuntu-latest
 
-    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
+#     if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
 
-    permissions:
-      contents: 'read'
-      id-token: 'write'
+#     permissions:
+#       contents: 'read'
+#       id-token: 'write'
 
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v3
+#     steps:
+#       - name: Checkout repository
+#         uses: actions/checkout@v3
 
-      - id: 'auth'
-        name: 'Authenticate to Google Cloud'
-        uses: 'google-github-actions/auth@v1'
-        with:
-          workload_identity_provider: 'projects/429781279541/locations/global/workloadIdentityPools/github-actions-pool/providers/github-provider'
-          service_account: 'github-actions@aa-dashboard-457316.iam.gserviceaccount.com'
+#       - id: 'auth'
+#         name: 'Authenticate to Google Cloud'
+#         uses: 'google-github-actions/auth@v1'
+#         with:
+#           workload_identity_provider: 'projects/429781279541/locations/global/workloadIdentityPools/github-actions-pool/providers/github-provider'
+#           service_account: 'github-actions@aa-dashboard-457316.iam.gserviceaccount.com'
 
-      - name: 'Set up Cloud SDK'
-        uses: 'google-github-actions/setup-gcloud@v1'
+#       - name: 'Set up Cloud SDK'
+#         uses: 'google-github-actions/setup-gcloud@v1'
 
-      - name: Deploy to Cloud Run
-        run: |
-          SERVICE_NAME="backend-api"
+#       - name: Deploy to Cloud Run
+#         run: |
+#           SERVICE_NAME="backend-api"
 
-          gcloud run deploy ${SERVICE_NAME} \
-            --project=aa-dashboard-457316 \
-            --source ./api \
-            --region asia-northeast1 \
-            --platform managed \
-            --allow-unauthenticated \
-            --port 4000 \
-            --update-env-vars "NODE_ENV=production,PAYMASTER_ADDRESS=0x415b4ceC5cf512CeDBE09C12081A0b75E13854Ff,POSTGRES_USER=${{ secrets.POSTGRES_USER }},POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD }},POSTGRES_DB=${{ secrets.POSTGRES_DB }}" \
-            --update-secrets="ALCHEMY_API_KEY=ALCHEMY_API_KEY:latest,PAYMASTER_PRIVATE_KEY=PAYMASTER_PRIVATE_KEY:latest,FAUCET_ADMIN_PRIVATE_KEY=FAUCET_ADMIN_PRIVATE_KEY:latest,DATABASE_URL=DATABASE_URL:latest"
+#           gcloud run deploy ${SERVICE_NAME} \
+#             --project=aa-dashboard-457316 \
+#             --source ./api \
+#             --region asia-northeast1 \
+#             --platform managed \
+#             --allow-unauthenticated \
+#             --port 4000 \
+#             --update-env-vars "NODE_ENV=production,PAYMASTER_ADDRESS=0x415b4ceC5cf512CeDBE09C12081A0b75E13854Ff,POSTGRES_USER=${{ secrets.POSTGRES_USER }},POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD }},POSTGRES_DB=${{ secrets.POSTGRES_DB }}" \
+#             --update-secrets="ALCHEMY_API_KEY=ALCHEMY_API_KEY:latest,PAYMASTER_PRIVATE_KEY=PAYMASTER_PRIVATE_KEY:latest,FAUCET_ADMIN_PRIVATE_KEY=FAUCET_ADMIN_PRIVATE_KEY:latest,DATABASE_URL=DATABASE_URL:latest"
 
-      - name: Output Service URL
-        if: success()
-        run: |
-          SERVICE_NAME="backend-api"
+#       - name: Output Service URL
+#         if: success()
+#         run: |
+#           SERVICE_NAME="backend-api"
