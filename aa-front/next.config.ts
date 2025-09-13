@@ -8,7 +8,9 @@ const nextConfig: NextConfig = {
       {
         source: '/api/:path*',
         destination:
-          process.env.NODE_ENV === 'development' ? 'http://backend:4000/api/:path*' : '/api/:path*',
+          process.env.NODE_ENV === 'development' 
+            ? 'http://backend:4000/api/:path*' 
+            : 'https://backend-api-429781279541.asia-northeast1.run.app/api/:path*',
       },
     ]
   },
