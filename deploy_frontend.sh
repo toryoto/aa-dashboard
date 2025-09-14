@@ -19,6 +19,7 @@ echo "--- Cloud Build で Docker イメージをビルド ---"
 # cloudbuild.yaml がリポジトリ直下にあるので、submit 対象は "." にする
 gcloud builds submit . \
   --project="${GCP_PROJECT_ID}" \
+  --region="asia-northeast1" \
   --config=cloudbuild.yaml \
   --substitutions="${SUBS}"
 
