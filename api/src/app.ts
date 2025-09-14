@@ -6,7 +6,11 @@ import userOpRouter from './routes/userOp'
 
 const app = express()
 
-const allowedOrigins = ['http://localhost:3000', 'https://aa-dashboard-frontend-429781279541.asia-northeast1.run.app']
+const allowedOrigins = [
+  'http://localhost:3000',
+  'https://aa-dashboard-frontend-429781279541.asia-northeast1.run.app',
+  'https://aa-dashboard.xyz',
+]
 
 const corsOptions: cors.CorsOptions = {
   origin: function (origin, callback) {
