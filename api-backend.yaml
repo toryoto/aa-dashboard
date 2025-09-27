@@ -1,0 +1,28 @@
+affinityCookieTtlSec: 0
+backends:
+- balancingMode: UTILIZATION
+  capacityScaler: 1.0
+  group: https://www.googleapis.com/compute/v1/projects/aa-dashboard-457316/regions/asia-northeast1/networkEndpointGroups/backend-api-neg
+connectionDraining:
+  drainingTimeoutSec: 0
+creationTimestamp: '2025-09-14T01:14:07.862-07:00'
+description: ''
+enableCDN: false
+fingerprint: Bi7wDxKHknc=
+iap:
+  enabled: false
+kind: compute#backendService
+loadBalancingScheme: EXTERNAL_MANAGED
+localityLbPolicy: ROUND_ROBIN
+logConfig:
+  enable: false
+name: api-backend
+port: 80
+portName: http
+protocol: HTTP
+securityPolicy: https://www.googleapis.com/compute/v1/projects/aa-dashboard-457316/global/securityPolicies/default-security-policy-for-backend-service-api-backend
+selfLink: https://www.googleapis.com/compute/v1/projects/aa-dashboard-457316/global/backendServices/api-backend
+sessionAffinity: NONE
+timeoutSec: 30
+usedBy:
+- reference: https://www.googleapis.com/compute/v1/projects/aa-dashboard-457316/global/urlMaps/aa-dashboard-lb

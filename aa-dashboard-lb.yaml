@@ -1,0 +1,18 @@
+creationTimestamp: '2025-09-14T01:15:43.527-07:00'
+defaultService: https://www.googleapis.com/compute/v1/projects/aa-dashboard-457316/global/backendServices/frontend-backend
+fingerprint: mXTjFWrJxH4=
+hostRules:
+- hosts:
+  - aa-dashboard.xyz
+  pathMatcher: path-matcher-1
+id: 3987763097424873281
+kind: compute#urlMap
+name: aa-dashboard-lb
+pathMatchers:
+- defaultService: https://www.googleapis.com/compute/v1/projects/aa-dashboard-457316/global/backendServices/frontend-backend
+  name: path-matcher-1
+  pathRules:
+  - paths:
+    - /api/*
+    service: https://www.googleapis.com/compute/v1/projects/aa-dashboard-457316/global/backendServices/api-backend
+selfLink: https://www.googleapis.com/compute/v1/projects/aa-dashboard-457316/global/urlMaps/aa-dashboard-lb
